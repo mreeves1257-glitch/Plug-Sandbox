@@ -273,13 +273,17 @@ async function sendCompositionRequest(){
   musicTimer=setTimeout(()=>{timedOut=true;controller.abort()},125000);
   const response=await fetch(new URL('plug',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
   if(serial!==musicRequestSerial)return request;
+  let reply;try{reply=await response.json()}catch(e){reply=null}
   if(!response.ok){
-   let err;try{err=await response.json()}catch(e){}
-   throw new Error(replyReason(err||{})+' (HTTP '+response.status+')');
+   throw new Error(replyReason(reply||{})+' (HTTP '+response.status+')');
   }
-  $('engineStatus').textContent='AI COMPOSITION: /plug → compose → AICompositionEngine.run SENT';
-  $('musicStatus').textContent='MUSIC: '+request.genre+' • AI COMPOSITION CREATING';
-  return request;
+  if(!reply)throw new Error('AI Composition returned no response data');
+  if(!acceptCompositionOutput(reply,base)){
+   throw new Error(replyReason(reply)+' — no playable audio returned');
+  }
+  $('engineStatus').textContent='AI COMPOSITION: OUTPUT RECEIVED';
+  $('musicStatus').textContent='MUSIC: '+request.genre+' • READY TO PLAY';
+  return reply;
  }catch(e){
   if(serial!==musicRequestSerial)return request;
   $('engineStatus').textContent='AI COMPOSITION: HANDOFF ERROR';
