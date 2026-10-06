@@ -244,50 +244,60 @@ function finishMusicRequest(){
 function cancelMusicCreation(){musicRequestSerial++;if(musicAbort)musicAbort.abort();finishMusicRequest();musicStage='';}
 function compositionAddress(){
  const supplied=window.AI_COMPOSITION_URL||new URLSearchParams(window.location.search).get('composer')||'https://ai-composer-shared-plug.onrender.com';
- const url=new URL(supplied,window.location.href);
+ const base=supplied||'http://127.0.0.1:8080';
+ const url=new URL(base,window.location.href);
  if(!/^https?:$/.test(url.protocol)||url.username||url.password)throw new Error('Invalid AI Composition connection address');
+ if(window.location.protocol==='https:'&&url.protocol!=='https:')throw new Error('AI Composition needs an HTTPS connection from this page');
  url.search='';url.hash='';url.pathname=url.pathname.replace(/\/(compose|plug|panel|health)\/?$/,'').replace(/\/$/,'')+'/';
  return url.href;
 }
-function compositionRequest(){
- return {interface_version:'COMPOSER_INTERFACE_V1',request_id:'cp-'+Date.now()+'-'+(++controlPanelPlugSerial),source:'Control Panel',music_engine:'AI_COMPOSITION',destination:'AI Composition - Sandbox',entry_path:'/plug',command:'compose',execute:'AICompositionEngine.run',target:'INTERNAL',mode:'normal',genre:$('genre').value,requested_at:new Date().toISOString()};
-}
+function compositionRequest(){return {source:'Control Panel',portal3_route:route,destination:'AI Composition - Sandbox',target:'INTERNAL',command:'compose',genre:$('genre').value,tuning_reference_hz:Number($('musicTuning').value),requested_at:new Date().toISOString()}}
 function replyReason(reply){const detail=reply?.ai_composition||reply;return detail?.reason||detail?.audio_render?.reason||detail?.error||reply?.error||detail?.status||'Audio output is not ready';}
 async function sendCompositionRequest(){
+ if(!powered){$('musicStatus').textContent='MUSIC: TURN MASTER POWER ON';return;}
+ if(!['MUSIC','BOTH'].includes(route)){$('musicStatus').textContent='MUSIC: SELECT MUSIC OR BOTH IN PORTAL 3 AND APPLY ROUTE';return;}
  if(musicBusy){$('musicStatus').textContent='MUSIC: WAIT FOR CREATION TO COMPLETE';return;}
  const serial=++musicRequestSerial,request=compositionRequest();
- musicBusy=true;$('createMusic').disabled=true;
+ const controller=new AbortController();musicAbort=controller;let timedOut=false;
+ musicBusy=true;$('createMusic').disabled=true;musicStage='CONNECTING • '+request.genre;
  stopAudio();currentComposition=null;
  if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);currentMusicURL=null;
- musicStage='SENDING TO AI COMPOSITION • '+request.genre;
- $('engineStatus').textContent='AI COMPOSITION: /plug → compose → AICompositionEngine.run';
+ $('engineStatus').textContent='AI COMPOSITION: CHECKING CONNECTION';
  $('musicStatus').textContent='MUSIC: '+musicStage;
+ musicTimer=setTimeout(()=>{timedOut=true;controller.abort()},125000);
  try{
   const base=compositionAddress();
-  if(!base){
-   $('engineStatus').textContent='AI COMPOSITION: /plug CONNECTION REQUIRED';
-   $('musicStatus').textContent='MUSIC: CREATE NEEDS THE AI COMPOSITION /plug ADDRESS';
-   return request;
-  }
-  const controller=new AbortController();musicAbort=controller;let timedOut=false;
-  musicTimer=setTimeout(()=>{timedOut=true;controller.abort()},125000);
-  const response=await fetch(new URL('plug',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
+  const health=await fetch(new URL('health',base).href,{signal:controller.signal,cache:'no-store'});
+  let state;try{state=await health.json()}catch(e){throw new Error('The AI Composition service returned an invalid connection response');}
+  if(!health.ok||state.status!=='COMPOSER_READY')throw new Error('AI Composition is unavailable: '+replyReason(state));
   if(serial!==musicRequestSerial)return request;
-  let reply;try{reply=await response.json()}catch(e){reply=null}
-  if(!response.ok){
-   throw new Error(replyReason(reply||{})+' (HTTP '+response.status+')');
+  musicStage='COMPOSING • '+request.genre;
+  $('engineStatus').textContent='AI COMPOSITION: CONNECTED • COMPOSING';
+  $('musicStatus').textContent='MUSIC: '+musicStage;
+  const response=await fetch(new URL('compose',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
+  if(serial!==musicRequestSerial)return request;
+  const type=(response.headers.get('content-type')||'').toLowerCase();
+  if(type.includes('audio/')){
+   if(!response.ok)throw new Error('AI Composition gateway returned HTTP '+response.status);
+   const blob=await response.blob();if(serial!==musicRequestSerial)return request;
+   if(!acceptCompositionOutput({genre:request.genre,audio_blob:blob,source:'AI Composition - Sandbox'},base))throw new Error('AI Composition returned empty audio');
+  }else{
+   let composerReply;try{composerReply=await response.json()}catch(e){throw new Error('AI Composition returned an unreadable composition response');}
+   if(serial!==musicRequestSerial)return request;
+   if(!response.ok)throw new Error(replyReason(composerReply)+' (HTTP '+response.status+')');
+   const detail=composerReply?.ai_composition||composerReply;
+   if(!acceptCompositionOutput(detail,base)){
+    $('engineStatus').textContent='AI COMPOSITION: CONNECTED • AUDIO NOT READY';
+    $('musicStatus').textContent='MUSIC: '+request.genre+' • '+replyReason(composerReply);
+   }
   }
-  if(!reply)throw new Error('AI Composition returned no response data');
-  if(!acceptCompositionOutput(reply,base)){
-   throw new Error(replyReason(reply)+' — no playable audio returned');
-  }
-  $('engineStatus').textContent='AI COMPOSITION: OUTPUT RECEIVED';
-  $('musicStatus').textContent='MUSIC: '+request.genre+' • READY TO PLAY';
-  return reply;
+  return request;
  }catch(e){
   if(serial!==musicRequestSerial)return request;
-  $('engineStatus').textContent='AI COMPOSITION: HANDOFF ERROR';
-  $('musicStatus').textContent='MUSIC ERROR: '+(e.message||e);
+  $('engineStatus').textContent=timedOut?'AI COMPOSITION: REQUEST TIMED OUT':'AI COMPOSITION: CONNECTION FAILED';
+  $('musicStatus').textContent=timedOut?'MUSIC: CREATION TIMED OUT • RETRY CREATE NEW MUSIC':
+   'MUSIC CONNECTION ERROR: '+(e.message||e)+(/Failed to fetch|fetch failed|NetworkError/i.test(e.message||'')?' • The AI Composition service must be reachable from your phone.':'');
+  return request;
  }finally{if(serial===musicRequestSerial)finishMusicRequest();}
 }
 function plugAudioURLFromPath(path,base){
