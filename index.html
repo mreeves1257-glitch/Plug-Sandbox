@@ -245,7 +245,7 @@ function cancelMusicCreation(){musicRequestSerial++;if(musicAbort)musicAbort.abo
 function compositionAddress(){
  const supplied=window.AI_COMPOSITION_URL||new URLSearchParams(window.location.search).get('composer')||'https://ai-composer-shared-plug.onrender.com';
  const hosted=/^https?:$/.test(window.location.protocol);
- if(hosted&&!supplied)throw new Error('The AI Composition music service is not connected to this Control Panel');
+ if(hosted&&!supplied)throw new Error('AI Composition plug address unavailable');
  const base=supplied||'http://127.0.0.1:8080';
  const url=new URL(base,window.location.href);
  if(!/^https?:$/.test(url.protocol)||url.username||url.password)throw new Error('Invalid AI Composition connection address');
