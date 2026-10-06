@@ -230,7 +230,7 @@ async function sendCompositionRequest(){
   musicStage='COMPOSING • '+request.genre;
   $('engineStatus').textContent='AI COMPOSITION: CONNECTED • COMPOSING';
   $('musicStatus').textContent='MUSIC: '+musicStage;
-  const response=await fetch(new URL('compose',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
+  const response=await fetch(new URL('plug',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...request,interface_version:'COMPOSER_INTERFACE_V1'}),signal:controller.signal});
   if(serial!==musicRequestSerial)return request;
   const type=(response.headers.get('content-type')||'').toLowerCase();
   if(type.includes('audio/')){
