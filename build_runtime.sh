@@ -7,3 +7,7 @@ tar -xzf /tmp/ai-composer-runtime.tar.gz -C composer/runtime
 # The Composer runtime remains preserved; replace only its shared boundary gateway with the repaired plug.
 cp input_gateway.py composer/runtime/input_gateway.py
 python -m py_compile composer/runtime/input_gateway.py composer/runtime/engine.py
+
+# Verify the preserved runtime's exact SFZ resource contract before installing assets.
+echo '=== SFZ RESOURCE CONTRACT ==='
+grep -R -n -E 'SFZ_RENDERER|KARORYFER_BIG_RUSTY_DRUMS|KARORYFER_SHINYGUITAR|KARORYFER_GROWLYBASS|sfizz_render' composer/runtime --include='*.py' --include='*.json' --include='*.txt' 2>/dev/null | head -120 || true
