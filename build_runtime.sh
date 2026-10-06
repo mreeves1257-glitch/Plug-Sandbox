@@ -49,6 +49,9 @@ install_library "KARORYFER_GROWLYBASS_V1_002" "https://github.com/sfzinstruments
 install_library "KARORYFER_SHINYGUITAR" "https://github.com/sfzinstruments/karoryfer.shinyguitar.git" "master"
 install_library "KARORYFER_BIG_RUSTY_DRUMS" "https://github.com/sfzinstruments/karoryfer.big-rusty-drums.git" "main"
 
+# Normalize Windows-style SFZ path separators for the Linux runtime.
+find "$BANK/KARORYFER_SHINYGUITAR" "$BANK/KARORYFER_BIG_RUSTY_DRUMS" -type f -name "*.sfz" -print0 | xargs -0 sed -i 's#\\\\#/#g'
+
 # Fail the build rather than deploy another runtime that cannot make audio.
 test -x "$TOOLS_DIR/bin/sfizz_render"
 test -f "$BANK/KARORYFER_GROWLYBASS_V1_002/growlybass_vicious.sfz"
