@@ -85,12 +85,22 @@ class Handler(BaseHTTPRequestHandler):
                 if command=='ping': return self._send(200,{'interface_version':'COMPOSER_INTERFACE_V1','status':'COMPOSER_READY','inbound_ready':True,'outbound_ready':True,'audio_ready':False,'fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
                 if command!='compose': raise ValueError('PLUG_COMMAND_INVALID')
             result=compose_request(payload); status=result.get('status')
-            if result.get('audio_rendered'): return self._send(200,result)
-            if status in ('PERFORMANCE_READY_RESOURCE_REQUIRED','AUDIO_RENDER_RESOURCE_REQUIRED'): return self._send(409,{**result,'outbound_ready':True,'delivery_status':'RESOURCE_REQUIRED','fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
-            if status=='AUDIO_STEMS_READY_MASTER_REQUIRED': return self._send(409,{**result,'outbound_ready':True,'delivery_status':'MASTER_REQUIRED','fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
-            if status in ('AUDIO_RENDER_FAILED','AUDIO_RENDER_BLOCKED'): return self._send(503,{**result,'outbound_ready':True,'delivery_status':'AUDIO_UNAVAILABLE','fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
-            if result.get('reason')=='CONTROLLED_INPUT_REQUIRED': return self._send(409,{**result,'outbound_ready':True,'delivery_status':'INPUT_REQUIRED','fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
-            return self._send(422,{**result,'outbound_ready':True,'delivery_status':'COMPOSITION_BLOCKED','fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
+            # A valid composer response means the plug handoff succeeded.
+            # Preserve the composer's status in the JSON body; do not turn
+            # resource/master/input/render states into transport failures.
+            if result.get('audio_rendered'):
+                delivery_status='AUDIO_READY'
+            elif status in ('PERFORMANCE_READY_RESOURCE_REQUIRED','AUDIO_RENDER_RESOURCE_REQUIRED'):
+                delivery_status='RESOURCE_REQUIRED'
+            elif status=='AUDIO_STEMS_READY_MASTER_REQUIRED':
+                delivery_status='MASTER_REQUIRED'
+            elif status in ('AUDIO_RENDER_FAILED','AUDIO_RENDER_BLOCKED'):
+                delivery_status='AUDIO_UNAVAILABLE'
+            elif result.get('reason')=='CONTROLLED_INPUT_REQUIRED':
+                delivery_status='INPUT_REQUIRED'
+            else:
+                delivery_status='COMPOSITION_BLOCKED'
+            return self._send(200,{**result,'outbound_ready':True,'handoff_ok':True,'delivery_status':delivery_status,'fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
         except Exception as exc: self._send(400,{'status':'INPUT_ERROR','error':str(exc)})
     def log_message(self,fmt,*args): pass
 
