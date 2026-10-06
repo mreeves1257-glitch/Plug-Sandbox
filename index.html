@@ -71,6 +71,14 @@ button{font-weight:700;min-height:44px}.primary{background:#eee;color:#111}.dang
 <div id="musicStatus" class="status">MUSIC: ROCK • READY</div>
 <div class="note">The Control Panel does not generate, synthesize, sample, arrange, or render music. CREATE NEW MUSIC sends the selected genre/style and tuning-reference request with the selected Portal 3 MUSIC or BOTH route directly to the AI Composition — Sandbox composing section, which is the sole music and sound authority. PLAY, STOP, and RECORD operate only on completed AI Composition audio returned to the panel.</div></section>
 
+
+<section class="card"><h2>OUTPUT</h2>
+<div class="note"><strong>AUDIO OUTPUT:</strong> Choose a browser/OS audio device when supported. Otherwise PLAY MUSIC follows this phone/computer's current system media output.</div>
+<div class="row"><button id="chooseAudioDevice" class="primary">CHOOSE AUDIO DEVICE</button><button id="applyOutput" class="primary">APPLY OUTPUT</button></div>
+<div id="deviceChooserStatus" class="note">Device chooser: checking browser support…</div>
+<div id="outputStatus" class="status">OUTPUT: SYSTEM MEDIA OUTPUT</div>
+</section>
+
 <section class="card"><h2>LIVE SIGNAL PATH</h2><div id="livePath" class="path">Library → Rack: waiting<br>P1: OFF<br>P2: WAITING<br>P3: OFF</div></section>
 </div>
 
@@ -110,7 +118,7 @@ const libraryData=[
 {id:'HI-011',label:'20,000 Hz',category:'High Audible'}
 ];
 const $=id=>document.getElementById(id);
-let powered=false,selectedSlot=0,loaded=null,p1Enabled=false,p1TuningReferenceHz=null,p2Applied=false,route="OFF",currentURL=null,currentComposition=null,currentMusicURL=null,baselineCtx=null,baselineOsc=null,baselineGain=null,activeRecorder=null;
+let powered=false,selectedSlot=0,loaded=null,p1Enabled=false,p1TuningReferenceHz=null,p2Applied=false,route="OFF",currentURL=null,currentComposition=null,currentMusicURL=null,baselineCtx=null,baselineOsc=null,baselineGain=null,activeRecorder=null,selectedAudioDevice=null,outputApplied=true;
 
 const rack=Array(12).fill(null);
 
@@ -137,6 +145,44 @@ async function playBlob(blob,label){
 
 function stopAudio(){if(activeRecorder){const rec=activeRecorder;activeRecorder=null;if(rec.state!=="inactive")rec.stop()}const p=$("player");p.pause();p.currentTime=0;if(currentURL){URL.revokeObjectURL(currentURL);currentURL=null}if(baselineOsc){try{baselineOsc.stop()}catch(e){}baselineOsc=null}if(baselineCtx){try{baselineCtx.close()}catch(e){}baselineCtx=null;baselineGain=null}}
 async function playTone(freq){return playBlob(wavTone(freq),freq+" Hz")}
+
+async function routePlayerToSelectedOutput(){
+ const p=$("player");
+ if(!selectedAudioDevice)return true;
+ if(typeof p.setSinkId==="function"){
+  await p.setSinkId(selectedAudioDevice.deviceId);
+  return true;
+ }
+ return false;
+}
+async function chooseRealAudioOutput(){
+ const status=$("deviceChooserStatus");
+ try{
+  if(navigator.mediaDevices&&typeof navigator.mediaDevices.selectAudioOutput==="function"){
+   status.textContent="Device chooser: waiting for your selection…";
+   const dev=await navigator.mediaDevices.selectAudioOutput();
+   selectedAudioDevice=dev;
+   const routed=await routePlayerToSelectedOutput();
+   outputApplied=true;
+   status.textContent=routed?"Device chooser: SELECTED • "+(dev.label||"Audio device"):"Device selected; browser PLAY MUSIC uses the system media output.";
+   $("outputStatus").textContent=routed?"OUTPUT: READY • "+(dev.label||"SELECTED AUDIO DEVICE"):"OUTPUT: READY • SYSTEM MEDIA OUTPUT";
+   return;
+  }
+  selectedAudioDevice=null;outputApplied=true;
+  status.textContent="Direct device chooser is not supported here. PLAY MUSIC uses this phone/computer's system media output.";
+  $("outputStatus").textContent="OUTPUT: READY • SYSTEM MEDIA OUTPUT";
+ }catch(e){
+  status.textContent="Device chooser: "+(e.name==="NotAllowedError"?"permission was not granted":(e.message||e));
+ }
+}
+async function applySelectedOutput(){
+ try{
+  const routed=await routePlayerToSelectedOutput();
+  outputApplied=true;
+  $("outputStatus").textContent=selectedAudioDevice&&routed?"OUTPUT: APPLIED • "+(selectedAudioDevice.label||"SELECTED AUDIO DEVICE"):"OUTPUT: APPLIED • SYSTEM MEDIA OUTPUT";
+ }catch(e){outputApplied=false;$("outputStatus").textContent="OUTPUT ERROR: "+(e.message||e)}
+}
+
 function renderLibrary(){
  const q=$("search").value.toLowerCase();$("library").innerHTML="";
  libraryData.filter(x=>!q||x.id.toLowerCase().includes(q)||x.label.toLowerCase().includes(q)||x.category.toLowerCase().includes(q)).forEach(x=>{
@@ -197,17 +243,17 @@ function finishMusicRequest(){
 }
 function cancelMusicCreation(){musicRequestSerial++;if(musicAbort)musicAbort.abort();finishMusicRequest();musicStage='';}
 function compositionAddress(){
- const supplied=window.AI_COMPOSITION_URL||new URLSearchParams(window.location.search).get('composer')||'https://ai-composer-shared-plug.onrender.com';
+ const supplied=window.AI_COMPOSITION_URL||new URLSearchParams(window.location.search).get('composer');
  const hosted=/^https?:$/.test(window.location.protocol);
  if(hosted&&!supplied)throw new Error('The AI Composition music service is not connected to this Control Panel');
  const base=supplied||'http://127.0.0.1:8080';
  const url=new URL(base,window.location.href);
  if(!/^https?:$/.test(url.protocol)||url.username||url.password)throw new Error('Invalid AI Composition connection address');
  if(window.location.protocol==='https:'&&url.protocol!=='https:')throw new Error('AI Composition needs an HTTPS connection from this page');
- url.search='';url.hash='';url.pathname=url.pathname.replace(/\/(compose|panel|health)\/?$/,'').replace(/\/$/,'')+'/';
+ url.search='';url.hash='';url.pathname=url.pathname.replace(/\/(compose|plug|panel|health)\/?$/,'').replace(/\/$/,'')+'/';
  return url.href;
 }
-function compositionRequest(){return {interface_version:'COMPOSER_INTERFACE_V1',request_id:'cp-'+Date.now()+'-'+(++controlPanelPlugSerial),source:'Control Panel',music_engine:'AI_COMPOSITION',destination:'AI Composition - Sandbox',portal3_route:route,target:'INTERNAL',mode:'normal',command:'compose',genre:$('genre').value,tuning_reference_hz:Number($('musicTuning').value),tuning_source:'PORTAL_1',requested_at:new Date().toISOString()}}
+function compositionRequest(){return {interface_version:'COMPOSER_INTERFACE_V1',request_id:'cp-'+Date.now()+'-'+(++controlPanelPlugSerial),source:'Control Panel',portal3_route:route,destination:'AI Composition - Sandbox',target:'INTERNAL',mode:'normal',command:'compose',genre:$('genre').value,tuning_reference_hz:Number($('musicTuning').value),requested_at:new Date().toISOString()}}
 function replyReason(reply){const detail=reply?.ai_composition||reply;return detail?.reason||detail?.audio_render?.reason||detail?.error||reply?.error||detail?.status||'Audio output is not ready';}
 async function sendCompositionRequest(){
  if(!powered){$('musicStatus').textContent='MUSIC: TURN MASTER POWER ON';return;}
@@ -223,9 +269,10 @@ async function sendCompositionRequest(){
  musicTimer=setTimeout(()=>{timedOut=true;controller.abort()},125000);
  try{
   const base=compositionAddress();
-  const health=await fetch(new URL('health',base).href,{signal:controller.signal,cache:'no-store'});
-  let state;try{state=await health.json()}catch(e){throw new Error('The AI Composition service returned an invalid connection response');}
-  if(!health.ok||!['PLUG_READY','COMPOSER_READY'].includes(state.status)||!state.inbound_ready||!state.outbound_ready)throw new Error('AI Composition plug is unavailable: '+replyReason(state));
+  const pingRequest={interface_version:'COMPOSER_INTERFACE_V1',request_id:'cp-ping-'+Date.now(),command:'ping'};
+  const health=await fetch(new URL('plug',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(pingRequest),signal:controller.signal,cache:'no-store'});
+  let state;try{state=await health.json()}catch(e){throw new Error('The Composer plug returned an invalid connection response');}
+  if(!health.ok||state.interface_version!=='COMPOSER_INTERFACE_V1'||state.status!=='COMPOSER_READY'||!state.inbound_ready||!state.outbound_ready)throw new Error('Composer plug is unavailable: '+replyReason(state));
   if(serial!==musicRequestSerial)return request;
   musicStage='COMPOSING • '+request.genre;
   $('engineStatus').textContent='AI COMPOSITION: CONNECTED • COMPOSING';
@@ -258,7 +305,8 @@ async function sendCompositionRequest(){
 }
 function plugAudioURLFromPath(path,base){
  if(typeof path!=='string'||!path)return null;
- const normalized=path.replace(/\\/g,'/'),marker='/output/',at=normalized.lastIndexOf(marker);
+ const normalized=path.replace(/\\/g,'/');
+ const marker='/output/';const at=normalized.lastIndexOf(marker);
  if(at<0||!normalized.toLowerCase().endsWith('.wav'))return null;
  const rel=normalized.slice(at+marker.length).split('/').map(encodeURIComponent).join('/');
  return new URL('audio/'+rel,base||compositionAddress()).href;
@@ -285,6 +333,12 @@ function acceptCompositionOutput(detail,base){
 }
 window.addEventListener('ai-composition-output',e=>acceptCompositionOutput(e.detail));
 window.addEventListener('message',e=>{let origin;try{origin=new URL(compositionAddress()).origin}catch(err){return}if(e.origin!==origin)return;if(e.data&&e.data.type==='AI_COMPOSITION_OUTPUT')acceptCompositionOutput(e.data)});
+$("chooseAudioDevice").onclick=chooseRealAudioOutput;
+$("applyOutput").onclick=applySelectedOutput;
+(function(){
+ const ok=navigator.mediaDevices&&typeof navigator.mediaDevices.selectAudioOutput==="function";
+ $("deviceChooserStatus").textContent=ok?"Device chooser: SUPPORTED • Press CHOOSE AUDIO DEVICE":"SYSTEM OUTPUT • PLAY MUSIC follows this phone/computer's selected media output.";
+})();
 $("createMusic").onclick=()=>sendCompositionRequest();
 $("playMusic").onclick=async()=>{
  if(musicBusy){$("musicStatus").textContent="MUSIC: WAIT FOR CREATION TO COMPLETE";return}
@@ -292,7 +346,7 @@ $("playMusic").onclick=async()=>{
  const url=currentMusicURL||currentComposition.audio_url||currentComposition.playback_url||currentComposition.output_url;
  if(!url){$("musicStatus").textContent="MUSIC: "+(currentComposition.message||currentComposition.status||"WAITING FOR AI COMPOSITION - SANDBOX OUTPUT");return}
  stopAudio();const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
- try{await p.play();$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
+ try{await routePlayerToSelectedOutput();await p.play();$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
 };
 $("stopMusic").onclick=()=>{cancelMusicCreation();stopAudio();$("musicStatus").textContent="MUSIC: STOPPED"};
 $("recordMusic").onclick=async()=>{
