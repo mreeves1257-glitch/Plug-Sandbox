@@ -67,17 +67,9 @@ button{font-weight:700;min-height:44px}.primary{background:#eee;color:#111}.dang
 <section class="card"><h2>MUSIC / COMPOSITION</h2>
 <label>Genre / Style<select id="genre" class="full"><option>ROCK</option><option>New Age</option><option>Classical</option><option>Swing</option><option>Jazz Ballad</option><option>Big Band</option><option>Jazz Waltz</option><option>Bebop</option><option>Cool Jazz</option><option>Dixieland</option><option>Jazz Fusion</option><option>Rhythm and Blues</option><option>Soul</option><option>Funk</option><option>Contemporary R&amp;B</option><option>Neo-Soul-related</option><option>Traditional Country</option><option>Country Rock</option><option>Country Ballad</option><option>Country Shuffle</option><option>Two-Step</option><option>Country Waltz</option><option>Bluegrass-related</option><option>Bossa Nova</option><option>Samba</option><option>Salsa</option><option>Mambo</option><option>Rumba</option><option>Cha-Cha</option><option>Bolero</option><option>House</option><option>Techno</option><option>Trance</option><option>Ambient Electronic</option><option>Downtempo</option><option>Breakbeat-related</option><option>Garage-related</option><option>Experimental Electronic</option><option>Eclectic New Indie</option><option>Mexican Reggaeton</option><option>Chugg / #chugg</option><option>Afrobeats</option><option>Afro-Latin / Afrobeats Fusion</option><option>Afro House</option><option>Trip-Hop</option><option>Contemporary Trip-Hop / Trip-Hop Revival</option><option>Regional Electronic Hybrids</option><option>Genre-Breaking / Borderless</option><option>Custom Hybrid</option><option>Custom Style</option><option>Controlled Custom Style Profile</option><option>DISCO</option><option>WALTZ</option><option>PIANIST</option><option>Spiritual</option></select></label>
 <div id="engineStatus" class="status">AI COMPOSITION: READY FOR REQUEST</div>
-<div class="row"><button id="createMusic" class="primary" data-music-engine="AI_COMPOSITION">CREATE NEW MUSIC</button><button id="playMusic" data-playback-source="AI_COMPOSITION_RETURN">▶ PLAY MUSIC</button><button id="stopMusic">■ STOP MUSIC</button><button id="recordMusic">● RECORD</button></div>
+<div class="row"><button id="createMusic" class="primary">CREATE NEW MUSIC</button><button id="playMusic">▶ PLAY MUSIC</button><button id="stopMusic">■ STOP MUSIC</button><button id="recordMusic">● RECORD</button></div>
 <div id="musicStatus" class="status">MUSIC: ROCK • READY</div>
-<div class="note">The Control Panel does not generate, synthesize, sample, arrange, or render music. CREATE NEW MUSIC sends the selected genre/style directly to AI Composition. The frequency controls and Portal 1–3 routing are independent of music creation. PLAY, STOP, and RECORD operate only on completed AI Composition audio returned to the panel.</div></section>
-
-
-<section class="card"><h2>OUTPUT</h2>
-<div class="note"><strong>AUDIO OUTPUT:</strong> Choose a browser/OS audio device when supported. Otherwise PLAY MUSIC follows this phone/computer's current system media output.</div>
-<div class="row"><button id="chooseAudioDevice" class="primary">CHOOSE AUDIO DEVICE</button><button id="applyOutput" class="primary">APPLY OUTPUT</button></div>
-<div id="deviceChooserStatus" class="note">Device chooser: checking browser support…</div>
-<div id="outputStatus" class="status">OUTPUT: SYSTEM MEDIA OUTPUT</div>
-</section>
+<div class="note">The Control Panel does not generate, synthesize, sample, arrange, or render music. CREATE NEW MUSIC sends the selected genre/style and tuning-reference request with the selected Portal 3 MUSIC or BOTH route directly to the AI Composition — Sandbox composing section, which is the sole music and sound authority. PLAY, STOP, and RECORD operate only on completed AI Composition audio returned to the panel.</div></section>
 
 <section class="card"><h2>LIVE SIGNAL PATH</h2><div id="livePath" class="path">Library → Rack: waiting<br>P1: OFF<br>P2: WAITING<br>P3: OFF</div></section>
 </div>
@@ -118,7 +110,7 @@ const libraryData=[
 {id:'HI-011',label:'20,000 Hz',category:'High Audible'}
 ];
 const $=id=>document.getElementById(id);
-let powered=false,selectedSlot=0,loaded=null,p1Enabled=false,p1TuningReferenceHz=null,p2Applied=false,route="OFF",currentURL=null,currentComposition=null,currentMusicURL=null,baselineCtx=null,baselineOsc=null,baselineGain=null,activeRecorder=null,selectedAudioDevice=null,outputApplied=true;
+let powered=false,selectedSlot=0,loaded=null,p1Enabled=false,p1TuningReferenceHz=null,p2Applied=false,route="OFF",currentURL=null,currentComposition=null,currentMusicURL=null,baselineCtx=null,baselineOsc=null,baselineGain=null,activeRecorder=null;
 
 const rack=Array(12).fill(null);
 
@@ -145,44 +137,6 @@ async function playBlob(blob,label){
 
 function stopAudio(){if(activeRecorder){const rec=activeRecorder;activeRecorder=null;if(rec.state!=="inactive")rec.stop()}const p=$("player");p.pause();p.currentTime=0;if(currentURL){URL.revokeObjectURL(currentURL);currentURL=null}if(baselineOsc){try{baselineOsc.stop()}catch(e){}baselineOsc=null}if(baselineCtx){try{baselineCtx.close()}catch(e){}baselineCtx=null;baselineGain=null}}
 async function playTone(freq){return playBlob(wavTone(freq),freq+" Hz")}
-
-async function routePlayerToSelectedOutput(){
- const p=$("player");
- if(!selectedAudioDevice)return true;
- if(typeof p.setSinkId==="function"){
-  await p.setSinkId(selectedAudioDevice.deviceId);
-  return true;
- }
- return false;
-}
-async function chooseRealAudioOutput(){
- const status=$("deviceChooserStatus");
- try{
-  if(navigator.mediaDevices&&typeof navigator.mediaDevices.selectAudioOutput==="function"){
-   status.textContent="Device chooser: waiting for your selection…";
-   const dev=await navigator.mediaDevices.selectAudioOutput();
-   selectedAudioDevice=dev;
-   const routed=await routePlayerToSelectedOutput();
-   outputApplied=true;
-   status.textContent=routed?"Device chooser: SELECTED • "+(dev.label||"Audio device"):"Device selected; browser PLAY MUSIC uses the system media output.";
-   $("outputStatus").textContent=routed?"OUTPUT: READY • "+(dev.label||"SELECTED AUDIO DEVICE"):"OUTPUT: READY • SYSTEM MEDIA OUTPUT";
-   return;
-  }
-  selectedAudioDevice=null;outputApplied=true;
-  status.textContent="Direct device chooser is not supported here. PLAY MUSIC uses this phone/computer's system media output.";
-  $("outputStatus").textContent="OUTPUT: READY • SYSTEM MEDIA OUTPUT";
- }catch(e){
-  status.textContent="Device chooser: "+(e.name==="NotAllowedError"?"permission was not granted":(e.message||e));
- }
-}
-async function applySelectedOutput(){
- try{
-  const routed=await routePlayerToSelectedOutput();
-  outputApplied=true;
-  $("outputStatus").textContent=selectedAudioDevice&&routed?"OUTPUT: APPLIED • "+(selectedAudioDevice.label||"SELECTED AUDIO DEVICE"):"OUTPUT: APPLIED • SYSTEM MEDIA OUTPUT";
- }catch(e){outputApplied=false;$("outputStatus").textContent="OUTPUT ERROR: "+(e.message||e)}
-}
-
 function renderLibrary(){
  const q=$("search").value.toLowerCase();$("library").innerHTML="";
  libraryData.filter(x=>!q||x.id.toLowerCase().includes(q)||x.label.toLowerCase().includes(q)||x.category.toLowerCase().includes(q)).forEach(x=>{
@@ -236,7 +190,7 @@ $("genre").onchange=()=>{
  currentMusicURL=null;currentComposition=null;
  update();$("musicStatus").textContent="MUSIC: "+$("genre").value+" SELECTED • CREATE NEW MUSIC";
 };
-let musicBusy=false,musicStage='',musicRequestSerial=0,musicAbort=null,musicTimer=null,controlPanelPlugSerial=0;
+let musicBusy=false,musicStage='',musicRequestSerial=0,musicAbort=null,musicTimer=null;
 function finishMusicRequest(){
  if(musicTimer!==null)clearTimeout(musicTimer);
  musicTimer=null;musicAbort=null;musicBusy=false;$('createMusic').disabled=false;
@@ -244,11 +198,13 @@ function finishMusicRequest(){
 function cancelMusicCreation(){musicRequestSerial++;if(musicAbort)musicAbort.abort();finishMusicRequest();musicStage='';}
 function compositionAddress(){
  const supplied=window.AI_COMPOSITION_URL||new URLSearchParams(window.location.search).get('composer')||'https://ai-composer-shared-plug.onrender.com';
+ const hosted=/^https?:$/.test(window.location.protocol);
+ if(hosted&&!supplied)throw new Error('The AI Composition music service is not connected to this Control Panel');
  const base=supplied||'http://127.0.0.1:8080';
  const url=new URL(base,window.location.href);
  if(!/^https?:$/.test(url.protocol)||url.username||url.password)throw new Error('Invalid AI Composition connection address');
  if(window.location.protocol==='https:'&&url.protocol!=='https:')throw new Error('AI Composition needs an HTTPS connection from this page');
- url.search='';url.hash='';url.pathname=url.pathname.replace(/\/(compose|plug|panel|health)\/?$/,'').replace(/\/$/,'')+'/';
+ url.search='';url.hash='';url.pathname=url.pathname.replace(/\/(compose|panel|health)\/?$/,'').replace(/\/$/,'')+'/';
  return url.href;
 }
 function compositionRequest(){return {source:'Control Panel',portal3_route:route,destination:'AI Composition - Sandbox',target:'INTERNAL',command:'compose',genre:$('genre').value,tuning_reference_hz:Number($('musicTuning').value),requested_at:new Date().toISOString()}}
@@ -300,55 +256,29 @@ async function sendCompositionRequest(){
   return request;
  }finally{if(serial===musicRequestSerial)finishMusicRequest();}
 }
-function plugAudioURLFromPath(path,base){
- if(typeof path!=='string'||!path)return null;
- const normalized=path.replace(/\\/g,'/');
- const marker='/output/';const at=normalized.lastIndexOf(marker);
- if(at<0||!normalized.toLowerCase().endsWith('.wav'))return null;
- const rel=normalized.slice(at+marker.length).split('/').map(encodeURIComponent).join('/');
- return new URL('audio/'+rel,base||compositionAddress()).href;
-}
-function findPlugAudioURL(value,base){
- if(!value)return null;
- if(typeof value==='object'){
-  for(const key of ['audio_url','playback_url','output_url'])if(typeof value[key]==='string'&&value[key])return new URL(value[key],base||compositionAddress()).href;
-  if(typeof value.wav_path==='string'){const u=plugAudioURLFromPath(value.wav_path,base);if(u)return u;}
-  if(Array.isArray(value)){for(const item of value){const u=findPlugAudioURL(item,base);if(u)return u;}}
-  else{for(const item of Object.values(value)){const u=findPlugAudioURL(item,base);if(u)return u;}}
- }
- return null;
-}
 function acceptCompositionOutput(detail,base){
  if(!detail)return false;
- const plugURL=findPlugAudioURL(detail,base);if(plugURL&&!detail.audio_url)detail={...detail,audio_url:plugURL};
  const genre=detail.genre||$("genre").value;
  if(detail.audio_rendered&&detail.audio_render?.audio_url&&!detail.audio_url)detail={...detail,audio_url:detail.audio_render.audio_url};
- if(detail.audio_blob instanceof Blob&&detail.audio_blob.size>0){if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);currentMusicURL=URL.createObjectURL(detail.audio_blob);currentComposition={...detail,genre,playback_source:'AI_COMPOSITION_RETURN',audio_blob:detail.audio_blob};}
- else if(detail.audio_url||detail.playback_url||detail.output_url){const url=new URL(detail.audio_url||detail.playback_url||detail.output_url,base||compositionAddress());if(!['http:','https:','blob:'].includes(url.protocol))return false;currentMusicURL=url.href;currentComposition={...detail,genre,playback_source:'AI_COMPOSITION_RETURN'};}
+ if(detail.audio_blob instanceof Blob&&detail.audio_blob.size>0){if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);currentMusicURL=URL.createObjectURL(detail.audio_blob);currentComposition={...detail,genre,audio_blob:detail.audio_blob};}
+ else if(detail.audio_url||detail.playback_url||detail.output_url){const url=new URL(detail.audio_url||detail.playback_url||detail.output_url,base||compositionAddress());if(!['http:','https:','blob:'].includes(url.protocol))return false;currentMusicURL=url.href;currentComposition={...detail,genre};}
  else return false;
  finishMusicRequest();$("engineStatus").textContent="AI COMPOSITION: OUTPUT RECEIVED";$("musicStatus").textContent="MUSIC: "+genre+" • AI COMPOSITION OUTPUT • READY TO PLAY";return true;
 }
 window.addEventListener('ai-composition-output',e=>acceptCompositionOutput(e.detail));
 window.addEventListener('message',e=>{let origin;try{origin=new URL(compositionAddress()).origin}catch(err){return}if(e.origin!==origin)return;if(e.data&&e.data.type==='AI_COMPOSITION_OUTPUT')acceptCompositionOutput(e.data)});
-$("chooseAudioDevice").onclick=chooseRealAudioOutput;
-$("applyOutput").onclick=applySelectedOutput;
-(function(){
- const ok=navigator.mediaDevices&&typeof navigator.mediaDevices.selectAudioOutput==="function";
- $("deviceChooserStatus").textContent=ok?"Device chooser: SUPPORTED • Press CHOOSE AUDIO DEVICE":"SYSTEM OUTPUT • PLAY MUSIC follows this phone/computer's selected media output.";
-})();
 $("createMusic").onclick=()=>sendCompositionRequest();
 $("playMusic").onclick=async()=>{
  if(musicBusy){$("musicStatus").textContent="MUSIC: WAIT FOR CREATION TO COMPLETE";return}
- if(!currentComposition){$("musicStatus").textContent="MUSIC: WAITING TO RECEIVE AI COMPOSITION AUDIO";return}
- if($("playMusic").dataset.playbackSource!=="AI_COMPOSITION_RETURN"||currentComposition.playback_source!=="AI_COMPOSITION_RETURN"){$("musicStatus").textContent="MUSIC: WAITING FOR AI COMPOSITION RETURN";return}
+ if(!currentComposition){$("musicStatus").textContent="MUSIC: CREATE A COMPOSITION FIRST";return}
  const url=currentMusicURL||currentComposition.audio_url||currentComposition.playback_url||currentComposition.output_url;
  if(!url){$("musicStatus").textContent="MUSIC: "+(currentComposition.message||currentComposition.status||"WAITING FOR AI COMPOSITION - SANDBOX OUTPUT");return}
  stopAudio();const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
- try{await routePlayerToSelectedOutput();await p.play();$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
+ try{await p.play();$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
 };
 $("stopMusic").onclick=()=>{cancelMusicCreation();stopAudio();$("musicStatus").textContent="MUSIC: STOPPED"};
 $("recordMusic").onclick=async()=>{
- if(!currentComposition){$("musicStatus").textContent="MUSIC: WAITING TO RECEIVE AI COMPOSITION AUDIO";return}
+ if(!currentComposition){$("musicStatus").textContent="MUSIC: CREATE A COMPOSITION FIRST";return}
  const url=currentMusicURL||currentComposition.audio_url||currentComposition.playback_url||currentComposition.output_url;
  if(!url){$("musicStatus").textContent="MUSIC: WAITING FOR AI COMPOSITION - SANDBOX OUTPUT";return}
  if(typeof MediaRecorder==="undefined"){$("musicStatus").textContent="MUSIC RECORD ERROR: RECORDING NOT SUPPORTED BY THIS BROWSER";return}
