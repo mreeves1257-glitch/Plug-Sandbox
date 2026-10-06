@@ -85,6 +85,7 @@ class Handler(BaseHTTPRequestHandler):
                 if command=='ping': return self._send(200,{'interface_version':'COMPOSER_INTERFACE_V1','status':'COMPOSER_READY','inbound_ready':True,'outbound_ready':True,'audio_ready':False,'fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
                 if command!='compose': raise ValueError('PLUG_COMMAND_INVALID')
             result=compose_request(payload); status=result.get('status')
+            print('COMPOSER RESULT status=%r reason=%r stage=%r audio_rendered=%r handoff=%r preflight=%r render=%r requirements=%r' % (status,result.get('reason'),result.get('stage'),result.get('audio_rendered'),result.get('output_handoff'),result.get('audio_resource_preflight'),result.get('audio_render'),result.get('resource_requirements')), flush=True)
             # A valid composer response means the plug handoff succeeded.
             # Preserve the composer's status in the JSON body; do not turn
             # resource/master/input/render states into transport failures.
