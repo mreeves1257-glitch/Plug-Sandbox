@@ -52,6 +52,10 @@ install_library "KARORYFER_BIG_RUSTY_DRUMS" "https://github.com/sfzinstruments/k
 # Normalize Windows-style SFZ path separators for the Linux runtime.
 find "$BANK/KARORYFER_SHINYGUITAR" "$BANK/KARORYFER_BIG_RUSTY_DRUMS" -type f -name "*.sfz" -print0 | xargs -0 sed -i 's#\\#/#g'
 
+# Align sample roots with the SFZ programs' relative-path convention.
+ln -sfn "$BANK/KARORYFER_SHINYGUITAR/Samples" "$BANK/KARORYFER_SHINYGUITAR/Programs/Samples"
+ln -sfn "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Samples" "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/Samples"
+
 # Fail the build rather than deploy another runtime that cannot make audio.
 test -x "$TOOLS_DIR/bin/sfizz_render"
 test -f "$BANK/KARORYFER_GROWLYBASS_V1_002/growlybass_vicious.sfz"
