@@ -42,7 +42,9 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers(); self.wfile.write(body)
     def do_GET(self):
         path=urlsplit(self.path).path
-        if path=='/health': return self._send(200,{'interface_version':'COMPOSER_INTERFACE_V1','status':'COMPOSER_READY','inbound_ready':True,'outbound_ready':True,'audio_ready':False,'fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
+        if path=='/health':
+            print('PLUG HEALTH READY', flush=True)
+            return self._send(200,{'interface_version':'COMPOSER_INTERFACE_V1','status':'COMPOSER_READY','inbound_ready':True,'outbound_ready':True,'audio_ready':False,'fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'})
         if not path.startswith('/audio/'): return self._send(404,{'status':'NOT_FOUND'})
         file=(OUT/unquote(path[len('/audio/'):])).resolve()
         try: file.relative_to(OUT.resolve())
@@ -68,9 +70,12 @@ class Handler(BaseHTTPRequestHandler):
                 chunk=stream.read(min(65536,remaining))
                 if not chunk: break
                 self.wfile.write(chunk); remaining-=len(chunk)
-    def do_OPTIONS(self): self._send(204,{})
+    def do_OPTIONS(self):
+        print(f'PLUG OPTIONS {urlsplit(self.path).path}', flush=True)
+        self._send(204,{})
     def do_POST(self):
         path=urlsplit(self.path).path
+        print(f'PLUG POST {path}', flush=True)
         if path not in ('/compose','/plug'): return self._send(404,{'status':'NOT_FOUND'})
         try:
             n=int(self.headers.get('Content-Length','0')); payload=json.loads(self.rfile.read(n) or b'{}')
