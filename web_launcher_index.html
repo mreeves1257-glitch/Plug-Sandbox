@@ -175,7 +175,7 @@ label{display:block;margin:8px 0}
 <label>Tuning Reference<select id="musicTuning" class="full"><option value="440" selected>A = 440 Hz</option><option value="432">A = 432 Hz</option></select></label>
 <div id="tuningStatus" class="status">MUSICAL TUNING: A = 440 Hz</div></section>
 <div class="sub">Frequency Library → Slots 1–12 → Portal 1 → Portal 2 → Portal 3 • media-audio engine</div>
-<div class="top"><a class="quicklink" href="#musicPanel">CREATE / PLAY MUSIC</a><a class="quicklink" href="#outputPanel">VOLUME / OUTPUT</a></div>
+<div class="top"><a class="quicklink" href="#musicPanel">CREATE / PLAY MUSIC</a><a class="quicklink" href="#outputPanel">VOLUME / OUTPUT</a><button id="installApp" class="quicklink" type="button">INSTALL APP</button></div>
 <div class="row"><button id="power" class="primary">MASTER POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button><span id="systemStatus" class="status">SYSTEM: OFF</span></div>
 
 <div class="grid">
@@ -542,6 +542,30 @@ $("recordMusic").onclick=async()=>{
 renderLibrary();renderSlots();update();
 </script>
 <script>
+let deferredInstallPrompt=null;
+const installButton=document.getElementById('installApp');
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  if(installButton) installButton.hidden=false;
+});
+if(installButton){
+  installButton.hidden=true;
+  installButton.addEventListener('click',async()=>{
+    if(!deferredInstallPrompt){
+      alert('If the install prompt does not appear, open your browser menu and choose Add to Home screen or Install app.');
+      return;
+    }
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    installButton.hidden=true;
+  });
+}
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  if(installButton) installButton.hidden=true;
+});
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch(() => {}));
 }
