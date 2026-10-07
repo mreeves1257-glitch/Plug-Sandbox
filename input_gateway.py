@@ -33,7 +33,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404, {"status": "NOT_FOUND"})
         return self._send(200, {
             "interface_version": INTERFACE,
-            "status": "PLUG_READY",
+            "status": "COMPOSER_READY",
             "role": "PASS_THROUGH",
             "inbound_ready": True,
             "outbound_ready": True,
@@ -65,7 +65,7 @@ class Handler(BaseHTTPRequestHandler):
             if command == "ping":
                 return self._send(200, {
                     "interface_version": INTERFACE,
-                    "status": "PLUG_READY",
+                    "status": "COMPOSER_READY",
                     "role": "PASS_THROUGH",
                     "inbound_ready": True,
                     "outbound_ready": True
