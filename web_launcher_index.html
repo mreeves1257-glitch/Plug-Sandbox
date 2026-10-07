@@ -9,196 +9,164 @@
 <meta name="control-panel-repair-checkpoint" content="2026-10-04T17:42:04.939941-05:00">
 <style>
 :root{
-  color-scheme:light;
-  --bg:#faf9f6;
-  --card:#ffffff;
-  --line:#d7dbe0;
-  --text:#182234;
-  --muted:#5d6876;
-  --accent:#245f9e;
-  --accent-soft:#eaf2fb;
-  --ok:#176328;
-  --warn:#8a5b00;
-  --danger:#a01818;
+  color-scheme:dark;
+  --bg:#07111f;
+  --shell:#0b1728;
+  --card:#101d2c;
+  --line:#29435c;
+  --text:#edf5ff;
+  --muted:#9db0c3;
+  --accent:#56b6ff;
+  --accent-soft:#10243b;
+  --ok:#61d095;
+  --warn:#ffcb6b;
+  --danger:#ff6b7a;
   font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
 }
 *{box-sizing:border-box}
-html{background:var(--bg)}
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-}
+html,body{margin:0;width:100%;height:100%;background:var(--bg);overflow:hidden}
+body{color:var(--text);font:16px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .wrap{
   width:100%;
   max-width:560px;
+  height:100dvh;
   margin:0 auto;
-  padding:12px 12px 96px;
-}
-h1{
-  font-size:1.45rem;
-  margin:8px 0 2px;
-  line-height:1.2;
-}
-h2{
-  font-size:1.05rem;
-  margin:0 0 10px;
-}
-.sub{
-  color:var(--muted);
-  font-size:.86rem;
-  margin:0 0 12px;
-}
-.top{
-  position:sticky;
-  top:0;
-  z-index:10;
+  padding:10px 10px 0;
+  background:var(--shell);
   display:flex;
-  gap:8px;
-  margin:0 -4px 12px;
-  padding:8px 4px;
-  background:rgba(250,249,246,.96);
-  backdrop-filter:blur(8px);
+  flex-direction:column;
+  overflow:hidden;
+}
+h1{font-size:1.35rem;margin:4px 0 2px;line-height:1.2}
+h2{font-size:1rem;margin:0 0 9px}
+.sub{color:var(--muted);font-size:.82rem;margin:0 0 8px}
+.top{
+  display:flex;
+  gap:7px;
+  flex:0 0 auto;
+  margin:0 0 8px;
+  padding:0;
+  background:transparent;
 }
 .quicklink{
   flex:1 1 0;
   text-align:center;
   color:var(--accent);
   background:var(--accent-soft);
-  border:1px solid #c9d8e8;
-  border-radius:10px;
-  padding:10px 8px;
+  border:1px solid #31506f;
+  border-radius:9px;
+  padding:9px 6px;
   text-decoration:none;
   font-weight:700;
-  font-size:.86rem;
+  font-size:.82rem;
 }
-.grid{display:block}
+.grid{
+  display:block;
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  padding:0 2px 22px 0;
+  scrollbar-gutter:stable;
+}
 .card{
   background:var(--card);
   border:1px solid var(--line);
-  border-radius:12px;
-  padding:14px;
-  margin:0 0 12px;
-  box-shadow:0 1px 2px rgba(24,34,52,.05);
+  border-radius:11px;
+  padding:12px;
+  margin:0 0 10px;
+  box-shadow:none;
 }
 .row{
   display:flex;
-  gap:8px;
+  gap:7px;
   flex-wrap:wrap;
   align-items:stretch;
-  margin:8px 0;
+  margin:7px 0;
 }
 button,select,input{
   width:100%;
-  min-height:48px;
+  min-height:46px;
   font:inherit;
-  border-radius:9px;
-  border:1px solid #aeb7c2;
-  background:#fff;
+  border-radius:8px;
+  border:1px solid #46637d;
+  background:#0b1724;
   color:var(--text);
-  padding:10px 12px;
+  padding:9px 10px;
 }
-button{
-  cursor:pointer;
-  font-weight:700;
-  background:#f7f9fb;
-}
-button.primary{
-  background:var(--accent);
-  color:#fff;
-  border-color:var(--accent);
-}
-button.danger{
-  color:#fff;
-  background:var(--danger);
-  border-color:var(--danger);
-}
-button:disabled,select:disabled{opacity:.5;cursor:not-allowed}
+button{cursor:pointer;font-weight:700}
+button.primary{background:#153a5f;border-color:var(--accent)}
+button.danger{background:#3a1520;border-color:var(--danger);color:#ffdce0}
+button:disabled,select:disabled{opacity:.45;cursor:not-allowed}
 .row>button{flex:1 1 46%;width:auto}
 .full{width:100%}
 .status{
-  margin-top:8px;
-  padding:10px 11px;
-  border:1px solid #d5dce4;
-  border-radius:9px;
-  color:#364556;
-  font-size:.88rem;
-  background:#f7f9fb;
-}
-.note,.small{
+  margin-top:7px;
+  padding:9px 10px;
+  border:1px solid var(--line);
+  border-radius:8px;
   color:var(--muted);
-  font-size:.79rem;
+  font-size:.84rem;
+  background:#0b1724;
 }
+.note,.small{color:var(--muted);font-size:.77rem}
 .library{
-  max-height:310px;
+  max-height:250px;
   overflow:auto;
   border:1px solid var(--line);
-  border-radius:9px;
-  background:#fff;
+  border-radius:8px;
+  background:#0b1724;
 }
 .librow{
   display:grid;
   grid-template-columns:1fr;
-  gap:7px;
-  padding:10px;
-  border-bottom:1px solid #eceff2;
+  gap:6px;
+  padding:9px;
+  border-bottom:1px solid #20364b;
 }
 .librow:last-child{border-bottom:0}
 .librow button{width:100%}
 .slots{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:8px;
+  gap:7px;
 }
 .slot{
-  min-height:66px;
-  padding:8px;
-  border:1px solid #cfd6de;
-  border-radius:9px;
-  background:#fff;
+  min-height:62px;
+  padding:7px;
+  border:1px solid #31506f;
+  border-radius:8px;
+  background:#0b1724;
   color:var(--text);
 }
 .slot.active{
   border:2px solid var(--accent);
-  background:var(--accent-soft);
+  background:#10243b;
 }
-.path{
-  line-height:1.7;
-  color:var(--muted);
-  font-size:.86rem;
-}
-label{
-  display:block;
-  margin:10px 0;
-  font-weight:600;
-}
-label input,label select{margin-top:5px;font-weight:400}
+.path{line-height:1.65;color:var(--muted);font-size:.83rem}
+label{display:block;margin:9px 0;font-weight:600}
+label input,label select{margin-top:4px;font-weight:400}
 .composeProgress{
   display:flex;
   align-items:center;
-  gap:10px;
-  margin-top:10px;
-  padding:12px;
-  background:var(--accent-soft);
-  border:1px solid #c9d8e8;
-  border-radius:10px;
+  gap:9px;
+  margin-top:9px;
+  padding:10px;
+  background:#10243b;
+  border:1px solid #31506f;
+  border-radius:9px;
 }
 .composeProgress[hidden]{display:none}
 .composeSpinner{
-  width:24px;
-  height:24px;
-  border:3px solid #bfd0e2;
-  border-top-color:var(--accent);
-  border-radius:50%;
-  animation:composeSpin .9s linear infinite;
-  flex:0 0 auto;
+  width:23px;height:23px;border:3px solid #31506f;border-top-color:var(--accent);
+  border-radius:50%;animation:composeSpin .9s linear infinite;flex:0 0 auto
 }
 @keyframes composeSpin{to{transform:rotate(360deg)}}
-#musicPanel,#outputPanel{scroll-margin-top:72px}
+#musicPanel,#outputPanel{scroll-margin-top:8px}
 @media(min-width:700px){
-  body{background:#eef1f4}
-  .wrap{margin:18px auto;background:var(--bg);border:1px solid #d9dde2;border-radius:16px}
+  body{background:#050b12}
+  .wrap{border-left:1px solid #1c3147;border-right:1px solid #1c3147}
 }
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
 </head><body>
