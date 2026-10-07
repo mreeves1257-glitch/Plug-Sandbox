@@ -8,32 +8,207 @@
 <link rel="icon" href="/control-panel-icon.svg" type="image/svg+xml">
 <meta name="control-panel-repair-checkpoint" content="2026-10-04T17:42:04.939941-05:00">
 <style>
-:root{color-scheme:dark;--bg:#07111d;--card:#101d2c;--line:#29435c;--text:#edf5ff;--muted:#9db0c3;--accent:#56b6ff;--ok:#61d095;--warn:#ffcb6b;--danger:#ff6b7a;font-family:Arial,sans-serif}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,sans-serif}
-.wrap{max-width:1050px;margin:auto;padding:14px}.top{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:8px 0 14px}
-h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:0 0 10px}.sub{color:var(--muted);font-size:13px;margin-bottom:10px}.small,.note{font-size:12px;color:var(--muted)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
-button,select,input{font:inherit;font-size:16px;min-height:44px;border-radius:8px;border:1px solid #46637d;background:#0b1724;color:var(--text);padding:8px 10px}
-button{cursor:pointer;font-weight:700}button.primary{border-color:var(--accent)}button.danger{border-color:var(--danger);color:#ffdce0}button:disabled,select:disabled{opacity:.45;cursor:not-allowed}
-.full{width:100%}.status{margin-top:8px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:13px;background:#0b1724}
-.library{max-height:330px;overflow:auto;border:1px solid var(--line);border-radius:9px}.librow{display:grid;grid-template-columns:1fr auto;gap:8px;padding:9px;border-bottom:1px solid #20364b;align-items:center}.librow:last-child{border-bottom:0}
-.slots{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px}.slot{border:1px solid var(--line);border-radius:8px;padding:8px;min-height:58px}.slot.active{border-color:var(--accent);outline:1px solid var(--accent)}
-.path{font-size:13px;line-height:1.7;color:var(--muted)}label{display:block;margin:8px 0}
-.quicklink{color:var(--accent);padding:10px 4px;text-decoration:none;font-weight:700}
-.composeProgress{display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px;background:#0b1724;border:1px solid var(--line);border-radius:8px}.composeProgress[hidden]{display:none}
-.composeSpinner{width:24px;height:24px;border:3px solid #46637d;border-top-color:var(--accent);border-radius:50%;animation:composeSpin .9s linear infinite;flex:0 0 auto}@keyframes composeSpin{to{transform:rotate(360deg)}}
-@media(max-width:500px){.wrap{padding:10px}.grid{grid-template-columns:1fr}.librow{grid-template-columns:1fr}.librow button{width:100%}}
+:root{
+  color-scheme:light;
+  --bg:#faf9f6;
+  --card:#ffffff;
+  --line:#d7dbe0;
+  --text:#182234;
+  --muted:#5d6876;
+  --accent:#245f9e;
+  --accent-soft:#eaf2fb;
+  --ok:#176328;
+  --warn:#8a5b00;
+  --danger:#a01818;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+.wrap{
+  width:100%;
+  max-width:560px;
+  margin:0 auto;
+  padding:12px 12px 96px;
+}
+h1{
+  font-size:1.45rem;
+  margin:8px 0 2px;
+  line-height:1.2;
+}
+h2{
+  font-size:1.05rem;
+  margin:0 0 10px;
+}
+.sub{
+  color:var(--muted);
+  font-size:.86rem;
+  margin:0 0 12px;
+}
+.top{
+  position:sticky;
+  top:0;
+  z-index:10;
+  display:flex;
+  gap:8px;
+  margin:0 -4px 12px;
+  padding:8px 4px;
+  background:rgba(250,249,246,.96);
+  backdrop-filter:blur(8px);
+}
+.quicklink{
+  flex:1 1 0;
+  text-align:center;
+  color:var(--accent);
+  background:var(--accent-soft);
+  border:1px solid #c9d8e8;
+  border-radius:10px;
+  padding:10px 8px;
+  text-decoration:none;
+  font-weight:700;
+  font-size:.86rem;
+}
+.grid{display:block}
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:14px;
+  margin:0 0 12px;
+  box-shadow:0 1px 2px rgba(24,34,52,.05);
+}
+.row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:stretch;
+  margin:8px 0;
+}
+button,select,input{
+  width:100%;
+  min-height:48px;
+  font:inherit;
+  border-radius:9px;
+  border:1px solid #aeb7c2;
+  background:#fff;
+  color:var(--text);
+  padding:10px 12px;
+}
+button{
+  cursor:pointer;
+  font-weight:700;
+  background:#f7f9fb;
+}
+button.primary{
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+}
+button.danger{
+  color:#fff;
+  background:var(--danger);
+  border-color:var(--danger);
+}
+button:disabled,select:disabled{opacity:.5;cursor:not-allowed}
+.row>button{flex:1 1 46%;width:auto}
+.full{width:100%}
+.status{
+  margin-top:8px;
+  padding:10px 11px;
+  border:1px solid #d5dce4;
+  border-radius:9px;
+  color:#364556;
+  font-size:.88rem;
+  background:#f7f9fb;
+}
+.note,.small{
+  color:var(--muted);
+  font-size:.79rem;
+}
+.library{
+  max-height:310px;
+  overflow:auto;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#fff;
+}
+.librow{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:7px;
+  padding:10px;
+  border-bottom:1px solid #eceff2;
+}
+.librow:last-child{border-bottom:0}
+.librow button{width:100%}
+.slots{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+}
+.slot{
+  min-height:66px;
+  padding:8px;
+  border:1px solid #cfd6de;
+  border-radius:9px;
+  background:#fff;
+  color:var(--text);
+}
+.slot.active{
+  border:2px solid var(--accent);
+  background:var(--accent-soft);
+}
+.path{
+  line-height:1.7;
+  color:var(--muted);
+  font-size:.86rem;
+}
+label{
+  display:block;
+  margin:10px 0;
+  font-weight:600;
+}
+label input,label select{margin-top:5px;font-weight:400}
+.composeProgress{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+  padding:12px;
+  background:var(--accent-soft);
+  border:1px solid #c9d8e8;
+  border-radius:10px;
+}
+.composeProgress[hidden]{display:none}
+.composeSpinner{
+  width:24px;
+  height:24px;
+  border:3px solid #bfd0e2;
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:composeSpin .9s linear infinite;
+  flex:0 0 auto;
+}
+@keyframes composeSpin{to{transform:rotate(360deg)}}
+#musicPanel,#outputPanel{scroll-margin-top:72px}
+@media(min-width:700px){
+  body{background:#eef1f4}
+  .wrap{margin:18px auto;background:var(--bg);border:1px solid #d9dde2;border-radius:16px}
+}
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
 </head><body>
 <div class="wrap">
-<h1>CONTROL PANEL — AUDIO & MUSIC PLAYBACK</h1>
+<h1>AI COMPOSER CONTROL PANEL</h1>
 <section class="card" id="tuningReference" style="margin:8px 0 12px"><h2>MUSICAL TUNING REFERENCE</h2>
 <div class="note">Global musical tuning instruction for AI Composition. This is separate from the pure-frequency research controls below.</div>
 <label>Tuning Reference<select id="musicTuning" class="full"><option value="440" selected>A = 440 Hz</option><option value="432">A = 432 Hz</option></select></label>
 <div id="tuningStatus" class="status">MUSICAL TUNING: A = 440 Hz</div></section>
-<div class="sub">AUDIO ENABLED • Frequency Library → Working Slots 1–12 → Portal 1 → Portal 2 → Portal 3</div>
+<div class="sub">PHONE CONTROL • Frequency Library → Slots 1–12 → Portal 1 → Portal 2 → Portal 3</div>
 <div class="top"><a class="quicklink" href="#musicPanel">CREATE / PLAY MUSIC</a><a class="quicklink" href="#outputPanel">VOLUME / OUTPUT</a></div>
 <div class="row"><button id="power" class="primary">MASTER POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button><span id="systemStatus" class="status">SYSTEM: OFF</span></div>
 
