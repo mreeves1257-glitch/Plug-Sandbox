@@ -137,7 +137,7 @@ def render_midi(resource,midi_path,wav_path,sample_rate=44100):
     wav.parent.mkdir(parents=True,exist_ok=True)
     cmd=[ready['renderer'],'--sfz',ready['sfz_path'],'--midi',str(midi),'--wav',str(wav),'--samplerate',str(sample_rate)]
     if wav.exists(): wav.unlink()
-    try: cp=subprocess.run(cmd,capture_output=True,text=True,timeout=120)
+    try: cp=subprocess.run(cmd,capture_output=True,text=True,timeout=240)
     except (OSError,subprocess.TimeoutExpired) as exc: raise SFZRendererError('SFZ_RENDER_FAILED:'+str(exc))
     if cp.returncode!=0 or not wav.is_file():
         raise SFZRendererError('SFZ_RENDER_FAILED:'+((cp.stderr or cp.stdout or '').strip()[:400]))
