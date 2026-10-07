@@ -9,6 +9,8 @@ import json
 import os
 import urllib.error
 import urllib.request
+import threading
+import time
 from urllib.parse import urlsplit, urljoin
 
 HOST = os.environ.get("HOST", "0.0.0.0")
@@ -59,6 +61,8 @@ class Handler(BaseHTTPRequestHandler):
             response = exc
 
         data = b"" if method == "HEAD" else response.read()
+        preview = data[:4000].decode("utf-8", errors="replace") if data else ""
+        print(f"PLUG RELAY method={method} target={target_path} upstream_status={response.status} body={preview}", flush=True)
         self.send_response(response.status)
         for key in ("Content-Type", "Content-Length", "Content-Range", "Accept-Ranges"):
             value = response.headers.get(key)
@@ -146,6 +150,7 @@ class Handler(BaseHTTPRequestHandler):
             if payload.get("interface_version") not in (None, INTERFACE):
                 raise ValueError("INTERFACE_VERSION_INVALID")
 
+            print(f"PLUG REQUEST path={path} request_id={payload.get('request_id')} genre={payload.get('genre')} command={payload.get('command')}", flush=True)
             if payload.get("command") == "ping":
                 return self.do_GET_health()
 
@@ -199,8 +204,49 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+def _startup_selftest():
+    if os.environ.get("PLUG_STARTUP_SELFTEST", "").strip() != "1":
+        return
+    time.sleep(2)
+    payload = {
+        "interface_version": INTERFACE,
+        "request_id": "plug-selftest-" + str(int(time.time())),
+        "source": "Plug Self Test",
+        "music_engine": "AI_COMPOSITION",
+        "destination": "AI Composition - Sandbox",
+        "entry_path": "/plug",
+        "command": "compose",
+        "execute": "AICompositionEngine.run",
+        "target": "INTERNAL",
+        "mode": "quick",
+        "genre": "ROCK",
+        "portal3_route": "MUSIC",
+        "tuning_reference_hz": 440,
+    }
+    body = json.dumps(payload).encode("utf-8")
+    try:
+        req = urllib.request.Request(
+            upstream_url("/compose"),
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            response = urllib.request.urlopen(req, timeout=TIMEOUT)
+        except urllib.error.HTTPError as exc:
+            response = exc
+        raw = response.read()
+        preview = raw[:8000].decode("utf-8", errors="replace")
+        print(f"PLUG SELFTEST upstream={UPSTREAM} status={response.status} body={preview}", flush=True)
+    except Exception as exc:
+        print(f"PLUG SELFTEST ERROR upstream={UPSTREAM or 'UNSET'} error={exc}", flush=True)
+
+
 def serve(host=HOST, port=PORT):
-    ThreadingHTTPServer((host, port), Handler).serve_forever()
+    server = ThreadingHTTPServer((host, port), Handler)
+    print(f"PLUG START host={host} port={port} upstream_configured={bool(UPSTREAM)}", flush=True)
+    threading.Thread(target=_startup_selftest, daemon=True).start()
+    server.serve_forever()
 
 
 if __name__ == "__main__":
