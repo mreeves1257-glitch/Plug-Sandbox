@@ -85,7 +85,9 @@ def validate_sfz_samples(sfz_path):
 
     walk(top)
     if not refs: raise SFZRendererError('SFZ_NO_SAMPLE_REFERENCES')
-    if missing: raise SFZRendererError(f'SFZ_SAMPLE_SET_INCOMPLETE:{len(missing)}_MISSING')
+    if missing:
+        preview=' | '.join(str(x) for x in missing[:32])
+        raise SFZRendererError(f'SFZ_SAMPLE_SET_INCOMPLETE:{len(missing)}_MISSING:{preview}')
     return {'sample_references':len(refs),'unique_samples':len(set(refs)),'sfz_files_validated':len(visited)}
 
 def resolve_renderer():
