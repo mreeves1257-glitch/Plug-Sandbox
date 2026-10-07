@@ -2,6 +2,10 @@
 <html><head>
 <!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Control Panel - Sandbox</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#111111">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="/control-panel-icon.svg" type="image/svg+xml">
 <meta name="control-panel-repair-checkpoint" content="2026-10-04T17:42:04.939941-05:00">
 <style>
 :root{font-family:system-ui,sans-serif;color-scheme:dark;background:#111;color:#eee}body{margin:0;padding:14px;max-width:980px;margin:auto}
@@ -333,4 +337,9 @@ $("recordMusic").onclick=async()=>{
  }catch(e){if(activeRecorder&&activeRecorder.state!=="inactive")activeRecorder.stop();activeRecorder=null;$("musicStatus").textContent="MUSIC RECORD ERROR: "+(e.message||e)}
 };
 renderLibrary();renderSlots();update();
-</script></body></html>
+</script><script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch(() => {}));
+}
+</script>
+</body></html>
