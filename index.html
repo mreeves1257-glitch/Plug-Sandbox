@@ -197,7 +197,7 @@ function finishMusicRequest(){
 }
 function cancelMusicCreation(){musicRequestSerial++;if(musicAbort)musicAbort.abort();finishMusicRequest();musicStage='';}
 function compositionAddress(){
- const supplied='https://ai-composer-shared-plug.onrender.com';
+ const supplied='https://ai-composer-shared-plug-clean.onrender.com';
  const hosted=/^https?:$/.test(window.location.protocol);
  if(hosted&&!supplied)throw new Error('The AI Composition music service is not connected to this Control Panel');
  const base=supplied||'http://127.0.0.1:8080';
