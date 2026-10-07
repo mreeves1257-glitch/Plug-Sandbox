@@ -73,12 +73,12 @@ bindings["electric_guitar:LEAD_MELODY"]={
 
 programs={
     "kick_drum_rock":(-1.0,"Programs/03-kick.sfz"),
-    "snare_drum":(-5.0,"Programs/02-basic.sfz"),
-    "hi_hat":(-9.0,"Programs/02-basic.sfz"),
+    "snare_drum":(-5.0,"Programs/04-snare.sfz"),
+    "hi_hat":(-9.0,"Programs/06-hihat.sfz"),
     "ride_cymbal":(-8.0,"Programs/07-cymbals.sfz"),
     "crash_cymbal":(-8.0,"Programs/07-cymbals.sfz"),
-    "tom_drum":(-4.0,"Programs/02-basic.sfz"),
-    "tom_tom":(-4.0,"Programs/02-basic.sfz"),
+    "tom_drum":(-4.0,"Programs/05-toms.sfz"),
+    "tom_tom":(-4.0,"Programs/05-toms.sfz"),
 }
 for instrument_id,(gain,mapping) in programs.items():
     bindings[instrument_id]={
