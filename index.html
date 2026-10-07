@@ -11,7 +11,7 @@ h1{font-size:1.45rem;margin-bottom:4px}h2{font-size:1rem;margin:0 0 10px}.sub,.n
 button{font-weight:700;min-height:44px}.primary{background:#eee;color:#111}.danger{border-color:#a55}.full{width:100%;box-sizing:border-box}
 .status{margin-top:8px;padding:9px;background:#0d0d0d;border-radius:8px}.library{max-height:270px;overflow:auto}.librow{display:grid;grid-template-columns:1fr auto;gap:6px;padding:6px 0;border-bottom:1px solid #333}
 .slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.slot{padding:8px;min-height:58px}.slot.active{outline:2px solid #ddd}label{display:block;margin:8px 0}
-.path{line-height:1.6}@media(max-width:520px){.grid{grid-template-columns:1fr}.slots{grid-template-columns:repeat(2,1fr)}}
+.path{line-height:1.6}.composeProgress{display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px;background:#0d0d0d;border-radius:8px}.composeProgress[hidden]{display:none}.composeSpinner{width:24px;height:24px;border:3px solid #555;border-top-color:#eee;border-radius:50%;animation:composeSpin .9s linear infinite;flex:0 0 auto}@keyframes composeSpin{to{transform:rotate(360deg)}}@media(max-width:520px){.grid{grid-template-columns:1fr}.slots{grid-template-columns:repeat(2,1fr)}}
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
 </head><body>
 <h1>CONTROL PANEL</h1>
@@ -68,7 +68,7 @@ button{font-weight:700;min-height:44px}.primary{background:#eee;color:#111}.dang
 <label>Genre / Style<select id="genre" class="full"><option>ROCK</option><option>New Age</option><option>Classical</option><option>Swing</option><option>Jazz Ballad</option><option>Big Band</option><option>Jazz Waltz</option><option>Bebop</option><option>Cool Jazz</option><option>Dixieland</option><option>Jazz Fusion</option><option>Rhythm and Blues</option><option>Soul</option><option>Funk</option><option>Contemporary R&amp;B</option><option>Neo-Soul-related</option><option>Traditional Country</option><option>Country Rock</option><option>Country Ballad</option><option>Country Shuffle</option><option>Two-Step</option><option>Country Waltz</option><option>Bluegrass-related</option><option>Bossa Nova</option><option>Samba</option><option>Salsa</option><option>Mambo</option><option>Rumba</option><option>Cha-Cha</option><option>Bolero</option><option>House</option><option>Techno</option><option>Trance</option><option>Ambient Electronic</option><option>Downtempo</option><option>Breakbeat-related</option><option>Garage-related</option><option>Experimental Electronic</option><option>Eclectic New Indie</option><option>Mexican Reggaeton</option><option>Chugg / #chugg</option><option>Afrobeats</option><option>Afro-Latin / Afrobeats Fusion</option><option>Afro House</option><option>Trip-Hop</option><option>Contemporary Trip-Hop / Trip-Hop Revival</option><option>Regional Electronic Hybrids</option><option>Genre-Breaking / Borderless</option><option>Custom Hybrid</option><option>Custom Style</option><option>Controlled Custom Style Profile</option><option>DISCO</option><option>WALTZ</option><option>PIANIST</option><option>Spiritual</option></select></label>
 <div id="engineStatus" class="status">AI COMPOSITION: READY FOR REQUEST</div>
 <div class="row"><button id="createMusic" class="primary">CREATE NEW MUSIC</button><button id="playMusic">▶ PLAY MUSIC</button><button id="stopMusic">■ STOP MUSIC</button><button id="recordMusic">● RECORD</button></div>
-<div id="musicStatus" class="status">MUSIC: ROCK • READY</div>
+<div id="musicStatus" class="status">MUSIC: ROCK • READY</div><div id="composeProgress" class="composeProgress" hidden><span class="composeSpinner" aria-hidden="true"></span><div><strong id="composeProgressTitle">COMPOSING…</strong><div id="composeProgressTime" class="small">Elapsed 0:00 • Estimated about 2:00 remaining</div></div></div>
 <div class="note">The Control Panel does not generate, synthesize, sample, arrange, or render music. CREATE NEW MUSIC sends the selected genre/style and tuning-reference request with the selected Portal 3 MUSIC or BOTH route directly to the AI Composition — Sandbox composing section, which is the sole music and sound authority. PLAY, STOP, and RECORD operate only on completed AI Composition audio returned to the panel.</div></section>
 
 <section class="card"><h2>LIVE SIGNAL PATH</h2><div id="livePath" class="path">Library → Rack: waiting<br>P1: OFF<br>P2: WAITING<br>P3: OFF</div></section>
@@ -190,10 +190,23 @@ $("genre").onchange=()=>{
  currentMusicURL=null;currentComposition=null;
  update();$("musicStatus").textContent="MUSIC: "+$("genre").value+" SELECTED • CREATE NEW MUSIC";
 };
-let musicBusy=false,musicStage='',musicRequestSerial=0,musicAbort=null,musicTimer=null,controlPanelPlugSerial=0;
+let musicBusy=false,musicStage='',musicRequestSerial=0,musicAbort=null,musicTimer=null,controlPanelPlugSerial=0,composeClock=null,composeStartedAt=0;
+function composeTime(seconds){seconds=Math.max(0,Math.floor(seconds));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')}
+function updateComposeProgress(){
+ if(!composeStartedAt)return;
+ const elapsed=(Date.now()-composeStartedAt)/1000,remaining=120-elapsed;
+ $('composeProgressTime').textContent=remaining>0?'Elapsed '+composeTime(elapsed)+' • Estimated ~'+composeTime(remaining)+' remaining':'Elapsed '+composeTime(elapsed)+' • Finishing…';
+}
+function startComposeProgress(label){
+ composeStartedAt=Date.now();$('composeProgress').hidden=false;$('composeProgressTitle').textContent=label||'COMPOSING…';updateComposeProgress();
+ if(composeClock!==null)clearInterval(composeClock);composeClock=setInterval(updateComposeProgress,1000);
+}
+function stopComposeProgress(){
+ if(composeClock!==null)clearInterval(composeClock);composeClock=null;composeStartedAt=0;$('composeProgress').hidden=true;
+}
 function finishMusicRequest(){
  if(musicTimer!==null)clearTimeout(musicTimer);
- musicTimer=null;musicAbort=null;musicBusy=false;$('createMusic').disabled=false;
+ musicTimer=null;musicAbort=null;musicBusy=false;$('createMusic').disabled=false;stopComposeProgress();
 }
 function cancelMusicCreation(){musicRequestSerial++;if(musicAbort)musicAbort.abort();finishMusicRequest();musicStage='';}
 function compositionAddress(){
@@ -215,7 +228,7 @@ async function sendCompositionRequest(){
  if(musicBusy){$('musicStatus').textContent='MUSIC: WAIT FOR CREATION TO COMPLETE';return;}
  const serial=++musicRequestSerial,request=compositionRequest();
  const controller=new AbortController();musicAbort=controller;let timedOut=false;
- musicBusy=true;$('createMusic').disabled=true;musicStage='CONNECTING • '+request.genre;
+ musicBusy=true;$('createMusic').disabled=true;musicStage='CONNECTING • '+request.genre;startComposeProgress('CONNECTING TO COMPOSER…');
  stopAudio();currentComposition=null;
  if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);currentMusicURL=null;
  $('engineStatus').textContent='AI COMPOSITION: CHECKING CONNECTION';
