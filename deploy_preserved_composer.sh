@@ -97,5 +97,11 @@ test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/03-kick.sfz"
 test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/04-snare.sfz"
 test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/06-hihat.sfz"
 
-python -m py_compile composer/runtime/input_gateway.py composer/runtime/engine.py composer/runtime/sfz_renderer_adapter.py
-echo "PRESERVED OCTOBER 5 COMPOSER READY"
+python -m pip install -q "numpy>=1.24"
+cp composer_support/scene009.py composer/runtime/scene009.py
+cp composer_support/master006.py composer/runtime/master006.py
+cp composer_support/global_3d_output_gate.py composer/runtime/global_3d_output_gate.py
+cp composer_support/spatial_finalizer.py composer/runtime/spatial_finalizer.py
+cp composer_support/input_gateway.py composer/runtime/input_gateway.py
+python -m py_compile composer/runtime/input_gateway.py composer/runtime/engine.py composer/runtime/sfz_renderer_adapter.py composer/runtime/scene009.py composer/runtime/master006.py composer/runtime/global_3d_output_gate.py composer/runtime/spatial_finalizer.py
+echo "PRESERVED OCTOBER 5 COMPOSER + 3D OUTPUT HANDOFF READY"
