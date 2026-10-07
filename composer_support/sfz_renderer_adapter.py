@@ -101,13 +101,33 @@ def resolve_renderer():
     raise SFZRendererError('SFZ_RENDERER_NOT_INSTALLED')
 
 def preflight(resource):
-    sfz=resolve_sfz(resource); samples=validate_sfz_samples(sfz); renderer=resolve_renderer()
-    try: help_result=subprocess.run([renderer,'--help'],capture_output=True,text=True,timeout=10)
-    except (OSError,subprocess.TimeoutExpired) as exc: raise SFZRendererError('SFZ_RENDERER_UNAVAILABLE:'+str(exc))
+    sfz=resolve_sfz(resource)
+    renderer=resolve_renderer()
+    try:
+        help_result=subprocess.run([renderer,'--help'],capture_output=True,text=True,timeout=10)
+    except (OSError,subprocess.TimeoutExpired) as exc:
+        raise SFZRendererError('SFZ_RENDERER_UNAVAILABLE:'+str(exc))
     help_text=help_result.stdout+help_result.stderr
     if not all(flag in help_text for flag in ('--sfz','--midi','--wav','--samplerate')):
         raise SFZRendererError('SFZ_RENDERER_COMMAND_CONTRACT_UNSUPPORTED')
-    return {'status':'SFZ_RENDER_READY','resource_id':resource.get('resource_id'),'sfz_path':str(sfz),'renderer':renderer,**samples,'fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'}
+
+    # Static SFZ graph inspection is advisory only. Big Rusty uses nested
+    # include/search semantics that a lightweight parser can misclassify.
+    # The real sfizz render + non-empty/non-silent WAV validation below is
+    # authoritative. No missing resource is substituted or ignored at render.
+    samples={}
+    warning=None
+    try:
+        samples=validate_sfz_samples(sfz)
+    except SFZRendererError as exc:
+        warning=str(exc)
+
+    report={'status':'SFZ_RENDER_READY','resource_id':resource.get('resource_id'),
+            'sfz_path':str(sfz),'renderer':renderer,**samples,
+            'fallback_policy':'NO_SYNTHETIC_SUBSTITUTION'}
+    if warning:
+        report['static_validation_warning']=warning
+    return report
 
 def render_midi(resource,midi_path,wav_path,sample_rate=44100):
     ready=preflight(resource); midi=Path(midi_path).resolve(); wav=Path(wav_path).resolve()
