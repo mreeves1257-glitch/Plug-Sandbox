@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="AI Composer">
+<rect width="512" height="512" rx="104" fill="#111111"/>
+<circle cx="256" cy="256" r="164" fill="none" stroke="#eeeeee" stroke-width="24"/>
+<path d="M178 318V194h34l44 72 44-72h34v124h-34v-70l-44 68-44-68v70z" fill="#eeeeee"/>
+</svg>
