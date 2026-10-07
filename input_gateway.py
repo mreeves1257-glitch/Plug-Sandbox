@@ -1,97 +1,198 @@
-"""Shared plug gateway — transport/pass-through only.
+"""Shared plug gateway — external pass-through only.
 
-Built from the old plug's external interface, with Portal 4 and all Composer
-internals deliberately excluded. The plug accepts traffic, preserves the
-payload, and returns a successful handoff. It does not compose, render,
-interpret Composer states, or convert downstream states into HTTP 409 errors.
+No Portal 4. No embedded Composer. No instruments, samples, rendering, or
+composition logic. This service relays Control Panel traffic to the separate
+Composer service and relays Composer responses/audio back to the panel.
 """
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
-from urllib.parse import urlsplit
+import urllib.error
+import urllib.request
+from urllib.parse import urlsplit, urljoin
 
 HOST = os.environ.get("HOST", "0.0.0.0")
 PORT = int(os.environ.get("PORT", "10000"))
 INTERFACE = "COMPOSER_INTERFACE_V1"
+UPSTREAM = os.environ.get("COMPOSER_URL", "").strip().rstrip("/")
+TIMEOUT = float(os.environ.get("COMPOSER_TIMEOUT_SECONDS", "120"))
+
+
+def upstream_url(path):
+    if not UPSTREAM:
+        raise RuntimeError("COMPOSER_URL_NOT_CONFIGURED")
+    return urljoin(UPSTREAM + "/", path.lstrip("/"))
 
 
 class Handler(BaseHTTPRequestHandler):
-    def _send(self, code, payload):
+    def _cors(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Range")
+        self.send_header("Access-Control-Allow-Methods", "GET, HEAD, POST, OPTIONS")
+        self.send_header("Cache-Control", "no-store")
+
+    def _json(self, code, payload):
         body = json.dumps(payload).encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
-        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
+        self._cors()
         self.end_headers()
-        self.wfile.write(body)
+        if self.command != "HEAD":
+            self.wfile.write(body)
+
+    def _proxy(self, method, target_path, body=None, content_type=None):
+        headers = {}
+        if content_type:
+            headers["Content-Type"] = content_type
+        if self.headers.get("Range"):
+            headers["Range"] = self.headers["Range"]
+        req = urllib.request.Request(
+            upstream_url(target_path),
+            data=body,
+            headers=headers,
+            method=method,
+        )
+        try:
+            response = urllib.request.urlopen(req, timeout=TIMEOUT)
+        except urllib.error.HTTPError as exc:
+            response = exc
+
+        data = b"" if method == "HEAD" else response.read()
+        self.send_response(response.status)
+        for key in ("Content-Type", "Content-Length", "Content-Range", "Accept-Ranges"):
+            value = response.headers.get(key)
+            if value:
+                self.send_header(key, value)
+        if not response.headers.get("Content-Length"):
+            self.send_header("Content-Length", str(len(data)))
+        self._cors()
+        self.end_headers()
+        if method != "HEAD" and data:
+            self.wfile.write(data)
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self._cors()
+        self.end_headers()
 
     def do_GET(self):
         path = urlsplit(self.path).path
-        if path != "/health":
-            return self._send(404, {"status": "NOT_FOUND"})
-        return self._send(200, {
-            "interface_version": INTERFACE,
-            "status": "COMPOSER_READY",
-            "role": "PASS_THROUGH",
-            "inbound_ready": True,
-            "outbound_ready": True,
-            "portal4_present": False,
-            "composer_embedded": False
-        })
+        if path == "/health":
+            if not UPSTREAM:
+                return self._json(503, {
+                    "interface_version": INTERFACE,
+                    "status": "COMPOSER_UPSTREAM_NOT_CONFIGURED",
+                    "inbound_ready": True,
+                    "outbound_ready": False,
+                })
+            try:
+                req = urllib.request.Request(upstream_url("/health"), method="GET")
+                try:
+                    response = urllib.request.urlopen(req, timeout=10)
+                except urllib.error.HTTPError as exc:
+                    response = exc
+                raw = response.read()
+                try:
+                    state = json.loads(raw.decode("utf-8"))
+                except Exception:
+                    state = {}
+                return self._json(200 if response.status < 500 else 503, {
+                    "interface_version": INTERFACE,
+                    "status": "COMPOSER_READY" if response.status < 500 else "COMPOSER_UNAVAILABLE",
+                    "role": "PASS_THROUGH",
+                    "inbound_ready": True,
+                    "outbound_ready": response.status < 500,
+                    "upstream_status": response.status,
+                    "upstream": state,
+                })
+            except Exception as exc:
+                return self._json(503, {
+                    "interface_version": INTERFACE,
+                    "status": "COMPOSER_UNAVAILABLE",
+                    "inbound_ready": True,
+                    "outbound_ready": False,
+                    "error": str(exc),
+                })
 
-    def do_OPTIONS(self):
-        self._send(204, {})
+        if path.startswith("/audio/"):
+            target = path
+            if urlsplit(self.path).query:
+                target += "?" + urlsplit(self.path).query
+            return self._proxy("GET", target)
+
+        return self._json(404, {"status": "NOT_FOUND"})
+
+    def do_HEAD(self):
+        path = urlsplit(self.path).path
+        if path.startswith("/audio/"):
+            target = path
+            if urlsplit(self.path).query:
+                target += "?" + urlsplit(self.path).query
+            return self._proxy("HEAD", target)
+        return self._json(404, {"status": "NOT_FOUND"})
 
     def do_POST(self):
         path = urlsplit(self.path).path
-        # Preserve the old plug's two public entry points.
         if path not in ("/plug", "/compose"):
-            return self._send(404, {"status": "NOT_FOUND"})
+            return self._json(404, {"status": "NOT_FOUND"})
 
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            payload = json.loads(self.rfile.read(length) or b"{}")
+            body = self.rfile.read(length) if length else b"{}"
+            payload = json.loads(body.decode("utf-8"))
             if not isinstance(payload, dict):
                 raise ValueError("INPUT_PAYLOAD_MUST_BE_OBJECT")
-
-            version = payload.get("interface_version")
-            if version not in (None, INTERFACE):
+            if payload.get("interface_version") not in (None, INTERFACE):
                 raise ValueError("INTERFACE_VERSION_INVALID")
 
-            command = payload.get("command", "compose")
+            if payload.get("command") == "ping":
+                return self.do_GET_health()
 
-            if command == "ping":
-                return self._send(200, {
-                    "interface_version": INTERFACE,
-                    "status": "COMPOSER_READY",
-                    "role": "PASS_THROUGH",
-                    "inbound_ready": True,
-                    "outbound_ready": True
-                })
-
-            # Pass-through boundary only:
-            # - no Portal 4
-            # - no Composer engine
-            # - no instruments/samples/rendering
-            # - no resource-state interpretation
-            # - no HTTP 409 conversion
-            return self._send(200, {
-                "interface_version": INTERFACE,
-                "status": "HANDOFF_READY",
-                "handoff_ok": True,
-                "inbound_ready": True,
-                "outbound_ready": True,
-                "entry_path": path,
-                "command": command,
-                "request": payload
-            })
-
+            return self._proxy(
+                "POST",
+                "/compose",
+                body=body,
+                content_type=self.headers.get("Content-Type", "application/json"),
+            )
         except Exception as exc:
-            return self._send(400, {
-                "status": "INPUT_ERROR",
-                "error": str(exc)
+            return self._json(400, {"status": "INPUT_ERROR", "error": str(exc)})
+
+    def do_GET_health(self):
+        if not UPSTREAM:
+            return self._json(503, {
+                "interface_version": INTERFACE,
+                "status": "COMPOSER_UPSTREAM_NOT_CONFIGURED",
+                "inbound_ready": True,
+                "outbound_ready": False,
+            })
+        try:
+            req = urllib.request.Request(upstream_url("/health"), method="GET")
+            try:
+                response = urllib.request.urlopen(req, timeout=10)
+            except urllib.error.HTTPError as exc:
+                response = exc
+            raw = response.read()
+            try:
+                state = json.loads(raw.decode("utf-8"))
+            except Exception:
+                state = {}
+            return self._json(200 if response.status < 500 else 503, {
+                "interface_version": INTERFACE,
+                "status": "COMPOSER_READY" if response.status < 500 else "COMPOSER_UNAVAILABLE",
+                "role": "PASS_THROUGH",
+                "inbound_ready": True,
+                "outbound_ready": response.status < 500,
+                "upstream_status": response.status,
+                "upstream": state,
+            })
+        except Exception as exc:
+            return self._json(503, {
+                "interface_version": INTERFACE,
+                "status": "COMPOSER_UNAVAILABLE",
+                "inbound_ready": True,
+                "outbound_ready": False,
+                "error": str(exc),
             })
 
     def log_message(self, fmt, *args):
