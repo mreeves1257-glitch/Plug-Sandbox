@@ -218,7 +218,7 @@ def _startup_selftest():
         "command": "compose",
         "execute": "AICompositionEngine.run",
         "target": "INTERNAL",
-        "mode": "quick",
+        "mode": "normal",
         "genre": "ROCK",
         "portal3_route": "MUSIC",
         "tuning_reference_hz": 440,
