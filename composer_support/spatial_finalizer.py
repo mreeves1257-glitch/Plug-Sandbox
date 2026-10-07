@@ -29,6 +29,10 @@ def _read_mono(path):
         channels=w.getnchannels(); width=w.getsampwidth(); rate=w.getframerate(); frames=w.getnframes(); raw=w.readframes(frames)
     return rate,_pcm_to_float(raw,width,channels)
 
+def _wav_info(path):
+    with wave.open(str(path),"rb") as w:
+        return w.getframerate(),w.getnframes()
+
 def _write_stereo(path,stereo,sr):
     path.parent.mkdir(parents=True,exist_ok=True)
     if stereo.ndim!=2 or stereo.shape[1]!=2: raise ValueError("STEREO_REQUIRED")
@@ -46,14 +50,14 @@ def finalize_spatial_master(engine_result,output_root):
     package=(engine_result.get("output_handoff") or {}).get("source_package_id") or "COMPOSITION"
     directory=output_root/package/"final_master"; directory.mkdir(parents=True,exist_ok=True)
     profiles={p["track_id"]:p for p in engine_result["modules"]["instrument"].get("profiles",[]) if p.get("track_id")}
-    sources=[]; source_audio=[]; sample_rate=None; max_frames=0
+    sources=[]; source_refs=[]; sample_rate=None; max_frames=0
     for stem in stems:
         track=str(stem["track_id"]); path=Path(stem["wav_path"]).resolve()
         if not path.is_file(): raise ValueError("SOURCE_STEM_MISSING:"+track)
-        rate,mono=_read_mono(path)
+        rate,frames=_wav_info(path)
         if sample_rate is None: sample_rate=rate
         elif rate!=sample_rate: raise ValueError("SOURCE_SAMPLE_RATE_MISMATCH")
-        max_frames=max(max_frames,len(mono)); source_audio.append((track,path,mono))
+        max_frames=max(max_frames,frames); source_refs.append((track,path))
         profile=profiles.get(track,{}); pan=ROCK_PAN.get(track,0.0) if str(engine_result.get("genre","")).upper()=="ROCK" else 0.0
         az=pan*math.pi/2
         sources.append({"source_id":track,"audio_ref":str(path),"instrument_id":stem.get("instrument_id"),"role":profile.get("role"),
@@ -70,9 +74,11 @@ def finalize_spatial_master(engine_result,output_root):
     master_path=directory/"object_master.json"; scene_path=directory/"scene.json"
     master_path.write_text(json.dumps(master,indent=2),encoding="utf-8"); scene_path.write_text(json.dumps(scene,indent=2),encoding="utf-8")
     stereo=np.zeros((max_frames,2),dtype=np.float32); source_map={o["source_id"]:o for o in master["audio_objects"]}; objects=[]
-    for track,path,mono in source_audio:
+    for track,path in source_refs:
         obj=source_map[track]
         if sha256_file(path)!=obj["audio_sha256"]: raise ValueError("SOURCE_AUDIO_CHANGED_AFTER_MASTER")
+        rate,mono=_read_mono(path)
+        if rate!=sample_rate: raise ValueError("SOURCE_SAMPLE_RATE_MISMATCH")
         p=obj["position"]; az=math.atan2(p["x"],p["y"]); pan=max(-1.0,min(1.0,az/(math.pi/2))); angle=(pan+1.0)*math.pi/4.0
         n=len(mono); stereo[:n,0]+=mono*math.cos(angle); stereo[:n,1]+=mono*math.sin(angle)
         objects.append({"source_identity":track,"azimuth":math.degrees(az),
@@ -89,7 +95,7 @@ def finalize_spatial_master(engine_result,output_root):
               "channels":2,"sample_rate":sample_rate,"duration_seconds":max_frames/sample_rate}
     manifest["global_3d_gate"]=validate_final_audio_output(manifest)
     if not manifest["global_3d_gate"]["compliant"]: raise ValueError("GLOBAL_3D_GATE_FAILED")
-    manifest["derivative_sha256"]=hashlib.sha256(derivative.read_bytes()).hexdigest()
+    manifest["derivative_sha256"]=sha256_file(derivative)
     manifest_path=directory/"output_manifest.json"; manifest_path.write_text(json.dumps(manifest,indent=2),encoding="utf-8")
     return {"status":"AUDIO_RENDER_PASS","audio_rendered":True,"wav_path":str(derivative),
             "parent_3d_master_id":master["master_id"],"master_path":str(master_path),"scene_path":str(scene_path),
