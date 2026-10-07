@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "AI Composer Control Panel",
   "short_name": "AI Composer",
   "description": "Launches the AI Composer Control Panel.",
@@ -7,10 +8,17 @@
   "display": "standalone",
   "background_color": "#111111",
   "theme_color": "#111111",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/control-panel-icon.svg",
-      "sizes": "any",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/control-panel-icon.svg",
+      "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
