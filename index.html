@@ -24,7 +24,7 @@ button{font-weight:700;min-height:44px}.primary{background:#eee;color:#111}.dang
 <label>Tuning Reference<select id="musicTuning" class="full"><option value="440" selected>A = 440 Hz</option><option value="432">A = 432 Hz</option></select></label>
 <div id="tuningStatus" class="status">MUSICAL TUNING: A = 440 Hz</div></section>
 <div class="sub">Frequency Library → Slots 1–12 → Portal 1 → Portal 2 → Portal 3 • media-audio engine</div>
-<div class="row"><button id="power" class="primary">MASTER POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button><span id="systemStatus" class="status">SYSTEM: OFF</span></div>
+<div class="row"><button id="installApp" class="primary" type="button" hidden>INSTALL CONTROL PANEL</button><button id="power" class="primary">MASTER POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button><span id="systemStatus" class="status">SYSTEM: OFF</span></div>
 
 <div class="grid">
 <section class="card"><h2>AUDIO BASELINE</h2><div class="note">Independent diagnostic only. It bypasses the portals.</div>
@@ -338,6 +338,26 @@ $("recordMusic").onclick=async()=>{
 };
 renderLibrary();renderSlots();update();
 </script><script>
+let deferredInstallPrompt=null;
+const installButton=document.getElementById('installApp');
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  deferredInstallPrompt=event;
+  if(installButton) installButton.hidden=false;
+});
+if(installButton){
+  installButton.addEventListener('click', async () => {
+    if(!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;
+    installButton.hidden=true;
+  });
+}
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt=null;
+  if(installButton) installButton.hidden=true;
+});
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch(() => {}));
 }
