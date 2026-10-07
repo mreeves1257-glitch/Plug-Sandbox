@@ -166,6 +166,8 @@ label{display:block;margin:8px 0}
   h1{font-size:1.2rem}
   .quicklink{padding:8px 6px;font-size:.76rem}
 }
+
+#loadP1,#enableP1,#applyP2,#applyP3,#applyOutput{display:none!important}
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
 </head><body>
 <div class="wrap">
@@ -342,10 +344,10 @@ function renderLibrary(){
  const q=$("search").value.toLowerCase();$("library").innerHTML="";
  libraryData.filter(x=>!q||x.id.toLowerCase().includes(q)||x.label.toLowerCase().includes(q)||x.category.toLowerCase().includes(q)).forEach(x=>{
   const d=document.createElement("div");d.className="librow";d.innerHTML=`<div><strong>${x.label}</strong><div class="small">${x.id} • ${x.category}</div></div>`;
-  const b=document.createElement("button");b.textContent="ASSIGN";b.onclick=()=>{rack[selectedSlot]=x;renderSlots();update()};d.appendChild(b);$("library").appendChild(d);
+  const b=document.createElement("button");b.textContent="SELECT";b.onclick=()=>{rack[selectedSlot]=x;loaded=x;if(powered){p1TuningReferenceHz=Number($("musicTuning").value);p1Enabled=true;p2Applied=true}renderSlots();update();saveChoices()};d.appendChild(b);$("library").appendChild(d);
  });
 }
-function renderSlots(){$("slots").innerHTML="";rack.forEach((x,i)=>{const b=document.createElement("button");b.className="slot"+(i===selectedSlot?" active":"");b.innerHTML=`<strong>SLOT ${i+1}</strong><span class="small">${x?x.label:"EMPTY"}</span>`;b.onclick=()=>{selectedSlot=i;renderSlots();update()};$("slots").appendChild(b)})}
+function renderSlots(){$("slots").innerHTML="";rack.forEach((x,i)=>{const b=document.createElement("button");b.className="slot"+(i===selectedSlot?" active":"");b.innerHTML=`<strong>SLOT ${i+1}</strong><span class="small">${x?x.label:"EMPTY"}</span>`;b.onclick=()=>{selectedSlot=i;if(rack[i]){loaded=rack[i];if(powered){p1TuningReferenceHz=Number($("musicTuning").value);p1Enabled=true;p2Applied=true}}renderSlots();update();saveChoices()};$("slots").appendChild(b)})}
 function update(){
  $("rackStatus").textContent="Selected: Slot "+(selectedSlot+1)+(rack[selectedSlot]?" • "+rack[selectedSlot].label:" • EMPTY");
  $("p1Loaded").textContent=loaded?loaded.label:"NONE";$("p1Status").textContent="P1: "+(p1Enabled?"ENABLED • TUNING A="+p1TuningReferenceHz+" Hz":"OFF");
@@ -369,10 +371,11 @@ $("test440").onclick=async()=>{
  }catch(e){stopAudio();$("audioStatus").textContent="AUDIO ERROR: "+(e.message||e)}
 };
 $("stopAudio").onclick=()=>{stopAudio();$("audioStatus").textContent="AUDIO: STOPPED"};
-$("volume").oninput=()=>{$("volText").textContent=$("volume").value+"%";$("player").volume=Number($("volume").value)/100;if(baselineGain&&baselineCtx)baselineGain.gain.setValueAtTime(Number($("volume").value)/100*0.35,baselineCtx.currentTime)};
-$("musicTuning").onchange=()=>{$("tuningStatus").textContent="MUSICAL TUNING: A = "+$("musicTuning").value+" Hz";update()};
+$("volume").oninput=()=>{saveChoices();$("volText").textContent=$("volume").value+"%";$("player").volume=Number($("volume").value)/100;if(baselineGain&&baselineCtx)baselineGain.gain.setValueAtTime(Number($("volume").value)/100*0.35,baselineCtx.currentTime)};
+$("musicTuning").onchange=()=>{$("tuningStatus").textContent="MUSICAL TUNING: A = "+$("musicTuning").value+" Hz";if(powered&&loaded){p1TuningReferenceHz=Number($("musicTuning").value);p1Enabled=true;p2Applied=true}saveChoices();update()};
+["sigDiag","physDiag","medDiag"].forEach(id=>{$(id).onchange=()=>{if(powered&&loaded){p1Enabled=true;p2Applied=true}saveChoices();update()}});$("route").onchange=()=>{route=$("route").value;saveChoices();update()};
 $("search").oninput=renderLibrary;$("clearSlot").onclick=()=>{rack[selectedSlot]=null;renderSlots();update()};
-$("power").onclick=()=>{powered=!powered;$("power").textContent="MASTER POWER: "+(powered?"ON":"OFF");$("systemStatus").textContent="SYSTEM: "+(powered?"ON":"OFF");if(!powered){cancelMusicCreation();stopAudio()}update()};
+$("power").onclick=()=>{powered=!powered;$("power").textContent="MASTER POWER: "+(powered?"ON":"OFF");$("systemStatus").textContent="SYSTEM: "+(powered?"ON":"OFF");if(powered&&loaded){p1TuningReferenceHz=Number($("musicTuning").value);p1Enabled=true;p2Applied=true}else if(!powered){cancelMusicCreation();stopAudio();p1Enabled=false;p2Applied=false}update()};
 $("estop").onclick=()=>{cancelMusicCreation();powered=false;p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";stopAudio();$("power").textContent="MASTER POWER: OFF";$("systemStatus").textContent="SYSTEM: EMERGENCY STOP";update()};
 $("loadP1").onclick=()=>{if(!rack[selectedSlot]){$("p1Status").textContent="P1: SELECT/ASSIGN A SLOT FIRST";return}loaded=rack[selectedSlot];p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";update()};
 $("loadSweep").onclick=()=>{const a=Number($("sweepStart").value),b=Number($("sweepEnd").value),d=Number($("sweepDuration").value);if(!(a>0&&b>0&&d>0)){$("sweepStatus").textContent="SWEEP: CHECK START / END / DURATION";return}loaded={id:"SWEEP",label:"SWEEP "+a+"–"+b+" Hz",category:"Sweep Source",type:"sweep",sweep:{a,b,d}};p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";$("sweepStatus").textContent="SWEEP: LOADED INTO P1 • "+a+" → "+b+" Hz";update()};
@@ -386,7 +389,7 @@ $("applyP3").onclick=()=>{if(!p2Applied){$("p3Status").textContent="P3: APPLY PO
 $("playFreq").onclick=async()=>{if(!powered){$("freqStatus").textContent="FREQUENCY: TURN MASTER POWER ON";return}if(!loaded||!p1Enabled){$("freqStatus").textContent="FREQUENCY: LOAD AND ENABLE P1";return}if(!p2Applied){$("freqStatus").textContent="FREQUENCY: APPLY PORTAL 2";return}if(route==="OFF"){$("freqStatus").textContent="FREQUENCY: APPLY PORTAL 3 ROUTE";return}if(loaded.type==="sweep"){$("freqStatus").textContent="FREQUENCY: USE START SWEEP";return}const f=hzOf(loaded);const ok=await playTone(f);$("freqStatus").textContent=ok?"FREQUENCY: PLAYING • "+loaded.label+" • ROUTE "+route:"FREQUENCY: AUDIO FAILED"};
 $("stopFreq").onclick=()=>{stopAudio();$("freqStatus").textContent="FREQUENCY: STOPPED"};
 $("genre").onchange=()=>{
- cancelMusicCreation();stopAudio();
+ saveChoices();cancelMusicCreation();stopAudio();
  if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);
  currentMusicURL=null;currentComposition=null;
  update();$("musicStatus").textContent="MUSIC: "+$("genre").value+" SELECTED • CREATE NEW MUSIC";
@@ -539,6 +542,35 @@ $("recordMusic").onclick=async()=>{
   rec.start();await p.play();$("musicStatus").textContent="MUSIC: RECORDING • "+recordingGenre;
  }catch(e){if(activeRecorder&&activeRecorder.state!=="inactive")activeRecorder.stop();activeRecorder=null;$("musicStatus").textContent="MUSIC RECORD ERROR: "+(e.message||e)}
 };
+
+function saveChoices(){
+ try{
+  localStorage.setItem("externalPanelChoices",JSON.stringify({
+   musicTuning:$("musicTuning").value,
+   genre:$("genre").value,
+   route:$("route").value,
+   sigDiag:$("sigDiag").value,
+   physDiag:$("physDiag").value,
+   medDiag:$("medDiag").value,
+   volume:$("volume").value,
+   selectedSlot
+  }));
+ }catch(e){}
+}
+function restoreChoices(){
+ try{
+  const v=JSON.parse(localStorage.getItem("externalPanelChoices")||"{}");
+  for(const id of ["musicTuning","genre","route","sigDiag","physDiag","medDiag","volume"]){
+   if(v[id]!=null && $(id)) $(id).value=String(v[id]);
+  }
+  if(Number.isInteger(v.selectedSlot)&&v.selectedSlot>=0&&v.selectedSlot<12)selectedSlot=v.selectedSlot;
+  route=$("route").value;
+  $("tuningStatus").textContent="MUSICAL TUNING: A = "+$("musicTuning").value+" Hz";
+  $("volText").textContent=$("volume").value+"%";
+  $("player").volume=Number($("volume").value)/100;
+ }catch(e){}
+}
+restoreChoices();
 renderLibrary();renderSlots();update();
 </script>
 <script>
