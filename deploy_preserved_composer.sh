@@ -49,6 +49,61 @@ ln -sfn "$BANK/KARORYFER_SHINYGUITAR/Samples/electric" "$BANK/KARORYFER_SHINYGUI
 ln -sfn "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Samples" "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/mappings/Samples"
 ln -sfn "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/mappings" "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/mappings/mappings"
 
+# Composer-facing hi-hat program: real Big Rusty recordings, reduced to one
+# close-mic articulation with velocity layers and round robin so normal-mode
+# compositions do not load the library's full multi-articulation hi-hat graph.
+cat > "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-hihat-lite.sfz" <<'SFZ'
+<global> lokey=0 hikey=127 loop_mode=one_shot seq_length=4 ampeg_release=0.20
+
+<group> hivel=15
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl1_rr1.flac
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl1_rr2.flac seq_position=2
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl1_rr3.flac seq_position=3
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl1_rr4.flac seq_position=4
+
+<group> lovel=16 hivel=31
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl2_rr1.flac
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl2_rr2.flac seq_position=2
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl2_rr3.flac seq_position=3
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl2_rr4.flac seq_position=4
+
+<group> lovel=32 hivel=47
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl3_rr1.flac
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl3_rr2.flac seq_position=2
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl3_rr3.flac seq_position=3
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl3_rr4.flac seq_position=4
+
+<group> lovel=48 hivel=63
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl4_rr1.flac
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl4_rr2.flac seq_position=2
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl4_rr3.flac seq_position=3
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl4_rr4.flac seq_position=4
+
+<group> lovel=64 hivel=79
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl5_rr1.flac
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl5_rr2.flac seq_position=2
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl5_rr3.flac seq_position=3
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl5_rr4.flac seq_position=4
+
+<group> lovel=80 hivel=95
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl6_rr1.flac
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl6_rr2.flac seq_position=2
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl6_rr3.flac seq_position=3
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl6_rr4.flac seq_position=4
+
+<group> lovel=96 hivel=111
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl7_rr1.flac
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl7_rr2.flac seq_position=2
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl7_rr3.flac seq_position=3
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl7_rr4.flac seq_position=4
+
+<group> lovel=112 hivel=127
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl8_rr1.flac
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl8_rr2.flac seq_position=2
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl8_rr3.flac seq_position=3
+<region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl8_rr4.flac seq_position=4
+SFZ
+
 # Deployment-only resource bindings. Composition/theory/performance code is untouched.
 python - <<'PY'
 import json
@@ -74,7 +129,7 @@ bindings["electric_guitar:LEAD_MELODY"]={
 programs={
     "kick_drum_rock":(-1.0,"Programs/03-kick.sfz"),
     "snare_drum":(-5.0,"Programs/04-snare.sfz"),
-    "hi_hat":(-9.0,"Programs/06-hihat.sfz"),
+    "hi_hat":(-9.0,"Programs/composer-hihat-lite.sfz"),
     "ride_cymbal":(-8.0,"Programs/07-cymbals.sfz"),
     "crash_cymbal":(-8.0,"Programs/07-cymbals.sfz"),
     "tom_drum":(-4.0,"Programs/05-toms.sfz"),
@@ -95,7 +150,7 @@ test -f "$BANK/KARORYFER_GROWLYBASS_V1_002/growlybass_vicious.sfz"
 test -f "$BANK/KARORYFER_SHINYGUITAR/Programs/electric_one.sfz"
 test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/03-kick.sfz"
 test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/04-snare.sfz"
-test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/06-hihat.sfz"
+test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-hihat-lite.sfz"
 
 python -m pip install -q "numpy>=1.24"
 cp composer_support/scene009.py composer/runtime/scene009.py
