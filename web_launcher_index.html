@@ -582,21 +582,21 @@ window.addEventListener('beforeinstallprompt',e=>{
   if(installButton) installButton.hidden=false;
 });
 if(installButton){
-  installButton.hidden=true;
+  installButton.hidden=false;
   installButton.addEventListener('click',async()=>{
     if(!deferredInstallPrompt){
-      alert('If the install prompt does not appear, open your browser menu and choose Add to Home screen or Install app.');
+      alert('Your browser did not offer the direct install prompt. Tap the browser menu (⋮) and choose Install app or Add to Home screen.');
       return;
     }
     deferredInstallPrompt.prompt();
     await deferredInstallPrompt.userChoice;
     deferredInstallPrompt=null;
-    installButton.hidden=true;
+    installButton.hidden=false;
   });
 }
 window.addEventListener('appinstalled',()=>{
   deferredInstallPrompt=null;
-  if(installButton) installButton.hidden=true;
+  if(installButton) installButton.hidden=false;
 });
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/service-worker.js').catch(() => {}));
