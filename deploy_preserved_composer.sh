@@ -104,6 +104,126 @@ cat > "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-hihat-lite.sfz" <<'SFZ'
 <region> sample=../Samples/hihat_14/tc/cl/ht_tc_vl8_rr4.flac seq_position=4
 SFZ
 
+# Memory-bounded Composer-facing Big Rusty drum programs. These keep real
+# Big Rusty recordings, velocity layers, and round robin while avoiding the
+# full library graphs that exceed the 512 MiB Render instance in normal mode.
+
+cat > "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-kick-lite.sfz" <<'SFZ'
+<global> lokey=0 hikey=127 loop_mode=one_shot seq_length=4
+<group> hivel=31
+<region> sample=../Samples/kick_24/kick/kick/k_vl1_rr1.flac
+<region> sample=../Samples/kick_24/kick/kick/k_vl1_rr2.flac seq_position=2
+<region> sample=../Samples/kick_24/kick/kick/k_vl1_rr3.flac seq_position=3
+<region> sample=../Samples/kick_24/kick/kick/k_vl1_rr4.flac seq_position=4
+<group> lovel=32 hivel=63
+<region> sample=../Samples/kick_24/kick/kick/k_vl5_rr1.flac
+<region> sample=../Samples/kick_24/kick/kick/k_vl5_rr2.flac seq_position=2
+<region> sample=../Samples/kick_24/kick/kick/k_vl5_rr3.flac seq_position=3
+<region> sample=../Samples/kick_24/kick/kick/k_vl5_rr4.flac seq_position=4
+<group> lovel=64 hivel=95
+<region> sample=../Samples/kick_24/kick/kick/k_vl9_rr1.flac
+<region> sample=../Samples/kick_24/kick/kick/k_vl9_rr2.flac seq_position=2
+<region> sample=../Samples/kick_24/kick/kick/k_vl9_rr3.flac seq_position=3
+<region> sample=../Samples/kick_24/kick/kick/k_vl9_rr4.flac seq_position=4
+<group> lovel=96 hivel=127
+<region> sample=../Samples/kick_24/kick/kick/k_vl13_rr1.flac
+<region> sample=../Samples/kick_24/kick/kick/k_vl13_rr2.flac seq_position=2
+<region> sample=../Samples/kick_24/kick/kick/k_vl13_rr3.flac seq_position=3
+<region> sample=../Samples/kick_24/kick/kick/k_vl13_rr4.flac seq_position=4
+SFZ
+
+cat > "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-snare-lite.sfz" <<'SFZ'
+<global> lokey=0 hikey=127 loop_mode=one_shot seq_length=4
+<group> hivel=31
+<region> sample=../Samples/snare_14/center/top/sn_center_vl1_rr1.flac
+<region> sample=../Samples/snare_14/center/top/sn_center_vl1_rr2.flac seq_position=2
+<region> sample=../Samples/snare_14/center/top/sn_center_vl1_rr3.flac seq_position=3
+<region> sample=../Samples/snare_14/center/top/sn_center_vl1_rr4.flac seq_position=4
+<group> lovel=32 hivel=63
+<region> sample=../Samples/snare_14/center/top/sn_center_vl4_rr1.flac
+<region> sample=../Samples/snare_14/center/top/sn_center_vl4_rr2.flac seq_position=2
+<region> sample=../Samples/snare_14/center/top/sn_center_vl4_rr3.flac seq_position=3
+<region> sample=../Samples/snare_14/center/top/sn_center_vl4_rr4.flac seq_position=4
+<group> lovel=64 hivel=95
+<region> sample=../Samples/snare_14/center/top/sn_center_vl7_rr1.flac
+<region> sample=../Samples/snare_14/center/top/sn_center_vl7_rr2.flac seq_position=2
+<region> sample=../Samples/snare_14/center/top/sn_center_vl7_rr3.flac seq_position=3
+<region> sample=../Samples/snare_14/center/top/sn_center_vl7_rr4.flac seq_position=4
+<group> lovel=96 hivel=127
+<region> sample=../Samples/snare_14/center/top/sn_center_vl10_rr1.flac
+<region> sample=../Samples/snare_14/center/top/sn_center_vl10_rr2.flac seq_position=2
+<region> sample=../Samples/snare_14/center/top/sn_center_vl10_rr3.flac seq_position=3
+<region> sample=../Samples/snare_14/center/top/sn_center_vl10_rr4.flac seq_position=4
+SFZ
+
+cat > "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-tom-lite.sfz" <<'SFZ'
+<global> lokey=0 hikey=127 loop_mode=one_shot seq_length=4
+<group> hivel=31
+<region> sample=../Samples/tom_14/center/cl/t14_vl1_rr1.flac
+<region> sample=../Samples/tom_14/center/cl/t14_vl1_rr2.flac seq_position=2
+<region> sample=../Samples/tom_14/center/cl/t14_vl1_rr3.flac seq_position=3
+<region> sample=../Samples/tom_14/center/cl/t14_vl1_rr4.flac seq_position=4
+<group> lovel=32 hivel=63
+<region> sample=../Samples/tom_14/center/cl/t14_vl2_rr1.flac
+<region> sample=../Samples/tom_14/center/cl/t14_vl2_rr2.flac seq_position=2
+<region> sample=../Samples/tom_14/center/cl/t14_vl2_rr3.flac seq_position=3
+<region> sample=../Samples/tom_14/center/cl/t14_vl2_rr4.flac seq_position=4
+<group> lovel=64 hivel=95
+<region> sample=../Samples/tom_14/center/cl/t14_vl4_rr1.flac
+<region> sample=../Samples/tom_14/center/cl/t14_vl4_rr2.flac seq_position=2
+<region> sample=../Samples/tom_14/center/cl/t14_vl4_rr3.flac seq_position=3
+<region> sample=../Samples/tom_14/center/cl/t14_vl4_rr4.flac seq_position=4
+<group> lovel=96 hivel=127
+<region> sample=../Samples/tom_14/center/cl/t14_vl6_rr1.flac
+<region> sample=../Samples/tom_14/center/cl/t14_vl6_rr2.flac seq_position=2
+<region> sample=../Samples/tom_14/center/cl/t14_vl6_rr3.flac seq_position=3
+<region> sample=../Samples/tom_14/center/cl/t14_vl6_rr4.flac seq_position=4
+SFZ
+
+cat > "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-crash-lite.sfz" <<'SFZ'
+<global> lokey=0 hikey=127 loop_mode=one_shot seq_length=4
+<group> hivel=31
+<region> sample=../Samples/crash_17/cr/cl/cr_vl1_rr1.flac
+<region> sample=../Samples/crash_17/cr/cl/cr_vl1_rr2.flac seq_position=2
+<region> sample=../Samples/crash_17/cr/cl/cr_vl1_rr3.flac seq_position=3
+<region> sample=../Samples/crash_17/cr/cl/cr_vl1_rr4.flac seq_position=4
+<group> lovel=32 hivel=63
+<region> sample=../Samples/crash_17/cr/cl/cr_vl2_rr1.flac
+<region> sample=../Samples/crash_17/cr/cl/cr_vl2_rr2.flac seq_position=2
+<region> sample=../Samples/crash_17/cr/cl/cr_vl2_rr3.flac seq_position=3
+<region> sample=../Samples/crash_17/cr/cl/cr_vl2_rr4.flac seq_position=4
+<group> lovel=64 hivel=95
+<region> sample=../Samples/crash_17/cr/cl/cr_vl4_rr1.flac
+<region> sample=../Samples/crash_17/cr/cl/cr_vl4_rr2.flac seq_position=2
+<region> sample=../Samples/crash_17/cr/cl/cr_vl4_rr3.flac seq_position=3
+<region> sample=../Samples/crash_17/cr/cl/cr_vl4_rr4.flac seq_position=4
+<group> lovel=96 hivel=127
+<region> sample=../Samples/crash_17/cr/cl/cr_vl5_rr1.flac
+<region> sample=../Samples/crash_17/cr/cl/cr_vl5_rr2.flac seq_position=2
+<region> sample=../Samples/crash_17/cr/cl/cr_vl5_rr3.flac seq_position=3
+<region> sample=../Samples/crash_17/cr/cl/cr_vl5_rr4.flac seq_position=4
+SFZ
+
+cat > "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-ride-lite.sfz" <<'SFZ'
+<global> lokey=0 hikey=127 loop_mode=one_shot seq_length=3
+<group> hivel=31
+<region> sample=../Samples/ride_22/rd/cl/rd_vl1_rr1.flac
+<region> sample=../Samples/ride_22/rd/cl/rd_vl1_rr2.flac seq_position=2
+<region> sample=../Samples/ride_22/rd/cl/rd_vl1_rr3.flac seq_position=3
+<group> lovel=32 hivel=63
+<region> sample=../Samples/ride_22/rd/cl/rd_vl4_rr1.flac
+<region> sample=../Samples/ride_22/rd/cl/rd_vl4_rr2.flac seq_position=2
+<region> sample=../Samples/ride_22/rd/cl/rd_vl4_rr3.flac seq_position=3
+<group> lovel=64 hivel=95
+<region> sample=../Samples/ride_22/rd/cl/rd_vl7_rr1.flac
+<region> sample=../Samples/ride_22/rd/cl/rd_vl7_rr2.flac seq_position=2
+<region> sample=../Samples/ride_22/rd/cl/rd_vl7_rr3.flac seq_position=3
+<group> lovel=96 hivel=127
+<region> sample=../Samples/ride_22/rd/cl/rd_vl10_rr1.flac
+<region> sample=../Samples/ride_22/rd/cl/rd_vl10_rr2.flac seq_position=2
+<region> sample=../Samples/ride_22/rd/cl/rd_vl10_rr3.flac seq_position=3
+SFZ
+
 # Deployment-only resource bindings. Composition/theory/performance code is untouched.
 python - <<'PY'
 import json
@@ -127,13 +247,13 @@ bindings["electric_guitar:LEAD_MELODY"]={
     "fallback_policy":"NO_SYNTHETIC_SUBSTITUTION"}
 
 programs={
-    "kick_drum_rock":(-1.0,"Programs/03-kick.sfz"),
-    "snare_drum":(-5.0,"Programs/04-snare.sfz"),
+    "kick_drum_rock":(-1.0,"Programs/composer-kick-lite.sfz"),
+    "snare_drum":(-5.0,"Programs/composer-snare-lite.sfz"),
     "hi_hat":(-9.0,"Programs/composer-hihat-lite.sfz"),
-    "ride_cymbal":(-8.0,"Programs/07-cymbals.sfz"),
-    "crash_cymbal":(-8.0,"Programs/07-cymbals.sfz"),
-    "tom_drum":(-4.0,"Programs/05-toms.sfz"),
-    "tom_tom":(-4.0,"Programs/05-toms.sfz"),
+    "ride_cymbal":(-8.0,"Programs/composer-ride-lite.sfz"),
+    "crash_cymbal":(-8.0,"Programs/composer-crash-lite.sfz"),
+    "tom_drum":(-4.0,"Programs/composer-tom-lite.sfz"),
+    "tom_tom":(-4.0,"Programs/composer-tom-lite.sfz"),
 }
 for instrument_id,(gain,mapping) in programs.items():
     bindings[instrument_id]={
@@ -148,9 +268,12 @@ PY
 
 test -f "$BANK/KARORYFER_GROWLYBASS_V1_002/growlybass_vicious.sfz"
 test -f "$BANK/KARORYFER_SHINYGUITAR/Programs/electric_one.sfz"
-test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/03-kick.sfz"
-test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/04-snare.sfz"
+test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-kick-lite.sfz"
+test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-snare-lite.sfz"
 test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-hihat-lite.sfz"
+test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-tom-lite.sfz"
+test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-crash-lite.sfz"
+test -f "$BANK/KARORYFER_BIG_RUSTY_DRUMS/Programs/composer-ride-lite.sfz"
 
 python -m pip install -q "numpy>=1.24"
 cp composer_support/scene009.py composer/runtime/scene009.py
