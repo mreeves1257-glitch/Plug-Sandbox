@@ -243,7 +243,7 @@ function finishMusicRequest(){
 }
 function cancelMusicCreation(){musicRequestSerial++;if(musicAbort)musicAbort.abort();finishMusicRequest();musicStage='';}
 function compositionAddress(){
- const supplied=window.AI_COMPOSITION_URL||new URLSearchParams(window.location.search).get('composer')||'https://ai-composer-shared-plug.onrender.com';
+ const supplied=window.AI_COMPOSITION_URL||new URLSearchParams(window.location.search).get('composer')||'https://ai-composer-shared-plug-clean.onrender.com';
  const hosted=/^https?:$/.test(window.location.protocol);
  if(hosted&&!supplied)throw new Error('AI Composition plug address unavailable');
  const base=supplied||'http://127.0.0.1:8080';
