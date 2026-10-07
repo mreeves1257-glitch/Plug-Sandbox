@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "AI Composer Web Control Panel",
+  "short_name": "Composer Web",
+  "description": "Launcher for the web-facing AI Composer Control Panel.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "/control-panel-icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/control-panel-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
