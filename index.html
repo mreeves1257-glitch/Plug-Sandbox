@@ -190,24 +190,24 @@ $("genre").onchange=()=>{
  currentMusicURL=null;currentComposition=null;
  update();$("musicStatus").textContent="MUSIC: "+$("genre").value+" SELECTED • CREATE NEW MUSIC";
 };
-let musicBusy=false,musicStage='',musicRequestSerial=0,musicAbort=null,musicTimer=null;
+let musicBusy=false,musicStage='',musicRequestSerial=0,musicAbort=null,musicTimer=null,controlPanelPlugSerial=0;
 function finishMusicRequest(){
  if(musicTimer!==null)clearTimeout(musicTimer);
  musicTimer=null;musicAbort=null;musicBusy=false;$('createMusic').disabled=false;
 }
 function cancelMusicCreation(){musicRequestSerial++;if(musicAbort)musicAbort.abort();finishMusicRequest();musicStage='';}
 function compositionAddress(){
- const supplied='https://ai-composer-shared-plug-clean.onrender.com';
+ const supplied='https://ai-composer-shared-plug.onrender.com';
  const hosted=/^https?:$/.test(window.location.protocol);
  if(hosted&&!supplied)throw new Error('The AI Composition music service is not connected to this Control Panel');
  const base=supplied||'http://127.0.0.1:8080';
  const url=new URL(base,window.location.href);
  if(!/^https?:$/.test(url.protocol)||url.username||url.password)throw new Error('Invalid AI Composition connection address');
  if(window.location.protocol==='https:'&&url.protocol!=='https:')throw new Error('AI Composition needs an HTTPS connection from this page');
- url.search='';url.hash='';url.pathname=url.pathname.replace(/\/(compose|panel|health)\/?$/,'').replace(/\/$/,'')+'/';
+ url.search='';url.hash='';url.pathname=url.pathname.replace(/\/(compose|plug|panel|health)\/?$/,'').replace(/\/$/,'')+'/';
  return url.href;
 }
-function compositionRequest(){return {source:'Control Panel',portal3_route:route,destination:'AI Composition - Sandbox',target:'INTERNAL',command:'compose',genre:$('genre').value,tuning_reference_hz:Number($('musicTuning').value),requested_at:new Date().toISOString()}}
+function compositionRequest(){return {interface_version:'COMPOSER_INTERFACE_V1',request_id:'cp-'+Date.now()+'-'+(++controlPanelPlugSerial),source:'Control Panel',music_engine:'AI_COMPOSITION',destination:'AI Composition - Sandbox',entry_path:'/plug',command:'compose',execute:'AICompositionEngine.run',target:'INTERNAL',mode:'normal',genre:$('genre').value,portal3_route:route,tuning_reference_hz:Number($('musicTuning').value),requested_at:new Date().toISOString()}}
 function replyReason(reply){const detail=reply?.ai_composition||reply;return detail?.reason||detail?.audio_render?.reason||detail?.error||reply?.error||detail?.status||'Audio output is not ready';}
 async function sendCompositionRequest(){
  if(!powered){$('musicStatus').textContent='MUSIC: TURN MASTER POWER ON';return;}
@@ -230,7 +230,7 @@ async function sendCompositionRequest(){
   musicStage='COMPOSING • '+request.genre;
   $('engineStatus').textContent='AI COMPOSITION: CONNECTED • COMPOSING';
   $('musicStatus').textContent='MUSIC: '+musicStage;
-  const response=await fetch(new URL('compose',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
+  const response=await fetch(new URL('plug',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
   if(serial!==musicRequestSerial)return request;
   const type=(response.headers.get('content-type')||'').toLowerCase();
   if(type.includes('audio/')){
@@ -256,12 +256,31 @@ async function sendCompositionRequest(){
   return request;
  }finally{if(serial===musicRequestSerial)finishMusicRequest();}
 }
+function plugAudioURLFromPath(path,base){
+ if(typeof path!=='string'||!path)return null;
+ const normalized=path.replace(/\\/g,'/');
+ const marker='/output/';const at=normalized.lastIndexOf(marker);
+ if(at<0||!normalized.toLowerCase().endsWith('.wav'))return null;
+ const rel=normalized.slice(at+marker.length).split('/').map(encodeURIComponent).join('/');
+ return new URL('audio/'+rel,base||compositionAddress()).href;
+}
+function findPlugAudioURL(value,base){
+ if(!value)return null;
+ if(typeof value==='object'){
+  for(const key of ['audio_url','playback_url','output_url'])if(typeof value[key]==='string'&&value[key])return new URL(value[key],base||compositionAddress()).href;
+  if(typeof value.wav_path==='string'){const u=plugAudioURLFromPath(value.wav_path,base);if(u)return u;}
+  if(Array.isArray(value)){for(const item of value){const u=findPlugAudioURL(item,base);if(u)return u;}}
+  else{for(const item of Object.values(value)){const u=findPlugAudioURL(item,base);if(u)return u;}}
+ }
+ return null;
+}
 function acceptCompositionOutput(detail,base){
  if(!detail)return false;
+ const plugURL=findPlugAudioURL(detail,base);if(plugURL&&!detail.audio_url)detail={...detail,audio_url:plugURL};
  const genre=detail.genre||$("genre").value;
  if(detail.audio_rendered&&detail.audio_render?.audio_url&&!detail.audio_url)detail={...detail,audio_url:detail.audio_render.audio_url};
- if(detail.audio_blob instanceof Blob&&detail.audio_blob.size>0){if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);currentMusicURL=URL.createObjectURL(detail.audio_blob);currentComposition={...detail,genre,audio_blob:detail.audio_blob};}
- else if(detail.audio_url||detail.playback_url||detail.output_url){const url=new URL(detail.audio_url||detail.playback_url||detail.output_url,base||compositionAddress());if(!['http:','https:','blob:'].includes(url.protocol))return false;currentMusicURL=url.href;currentComposition={...detail,genre};}
+ if(detail.audio_blob instanceof Blob&&detail.audio_blob.size>0){if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);currentMusicURL=URL.createObjectURL(detail.audio_blob);currentComposition={...detail,genre,playback_source:'AI_COMPOSITION_RETURN',audio_blob:detail.audio_blob};}
+ else if(detail.audio_url||detail.playback_url||detail.output_url){const url=new URL(detail.audio_url||detail.playback_url||detail.output_url,base||compositionAddress());if(!['http:','https:','blob:'].includes(url.protocol))return false;currentMusicURL=url.href;currentComposition={...detail,genre,playback_source:'AI_COMPOSITION_RETURN'};}
  else return false;
  finishMusicRequest();$("engineStatus").textContent="AI COMPOSITION: OUTPUT RECEIVED";$("musicStatus").textContent="MUSIC: "+genre+" • AI COMPOSITION OUTPUT • READY TO PLAY";return true;
 }
