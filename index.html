@@ -220,7 +220,7 @@ async function sendCompositionRequest(){
  if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);currentMusicURL=null;
  $('engineStatus').textContent='AI COMPOSITION: CHECKING CONNECTION';
  $('musicStatus').textContent='MUSIC: '+musicStage;
- musicTimer=setTimeout(()=>{timedOut=true;controller.abort()},125000);
+ musicTimer=setTimeout(()=>{timedOut=true;controller.abort()},315000);
  try{
   const base=compositionAddress();
   const health=await fetch(new URL('health',base).href,{signal:controller.signal,cache:'no-store'});
