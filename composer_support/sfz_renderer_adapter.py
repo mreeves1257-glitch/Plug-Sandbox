@@ -81,6 +81,8 @@ def validate_sfz_samples(sfz_path):
         for match in re.finditer(r'(?:^|\s)sample=(.*?)(?=\s+\w+=|\s*<|$)',text,re.S):
             ref=match.group(1).strip().strip('"').replace('\\','/')
             refs.append(ref)
+            if ref == '*silence':
+                continue
             if sample_target(path,ref,default) is None: missing.append(ref)
 
     walk(top)
