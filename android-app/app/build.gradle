@@ -1,0 +1,18 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.mreeves.aicomposercontrolpanel'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.mreeves.aicomposercontrolpanel"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+}
+
+dependencies {}
