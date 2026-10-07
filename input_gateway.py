@@ -10,8 +10,8 @@ from output_handoff import OUT
 import threading
 from engine import AICompositionEngine
 
-HOST=os.environ.get('HOST','127.0.0.1')
-PORT=int(os.environ.get('PORT','8765'))
+HOST=os.environ.get('HOST','0.0.0.0')
+PORT=int(os.environ.get('PORT','10000'))
 COMPOSE_LOCK=threading.Lock()
 
 def compose_request(payload):
