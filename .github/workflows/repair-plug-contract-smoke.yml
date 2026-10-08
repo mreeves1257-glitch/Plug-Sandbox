@@ -1,0 +1,19 @@
+name: Isolated Plug Gateway Validation
+on:
+  push:
+    branches:
+      - repair-ready-contract-and-timeout-2026-10-08
+  workflow_dispatch:
+
+jobs:
+  offline-plug-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate source
+        run: python -m py_compile input_gateway.py test_input_gateway.py
+      - name: Run local mocked gateway checks
+        run: python -m unittest -v test_input_gateway
