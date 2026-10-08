@@ -1,0 +1,123 @@
+name: Jazz Ballad live audio handoff verification
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/jazz-ballad-live-audio-verification.yml'
+  workflow_dispatch:
+
+jobs:
+  real-audio-verification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Verify Jazz Ballad over the live plug, audio URL, and WAV contents
+        env:
+          PLUG_URL: https://ai-composer-shared-plug-clean.onrender.com
+        run: |
+          python - <<'PY'
+          import array, json, math, os, re, time, urllib.request, wave
+          from io import BytesIO
+          from uuid import uuid4
+          base = os.environ["PLUG_URL"].rstrip("/")
+          start = time.monotonic()
+          with urllib.request.urlopen(base + "/health",timeout=30) as response:
+              health = json.load(response)
+          assert health.get("outbound_ready") is True, health
+          print("PLUG_AND_COMPOSER_HEALTH_OK", flush=True)
+          payload = {
+              "interface_version": "COMPOSER_INTERFACE_V1",
+              "request_id": "jazz-ballad-end-to-end-" + str(uuid4()),
+              "source": "independent-recorded-audio-verification",
+              "music_engine": "AI_COMPOSITION",
+              "destination": "AI Composition - Sandbox",
+              "entry_path": "/plug",
+              "command": "compose",
+              "execute": "AICompositionEngine.run",
+              "target": "INTERNAL",
+              "mode": "normal",
+              "genre": "Jazz Ballad",
+              "portal3_route": "MUSIC",
+              "tuning_reference_hz": 440
+          }
+          request = urllib.request.Request(
+              base + "/compose",
+              method="POST",
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type":"application/json"})
+          with urllib.request.urlopen(request, timeout=235) as response:
+              assert response.status == 200, response.status
+              body = response.read()
+          composition = json.loads(body)
+          print("COMPOSER_RESULT",json.dumps({
+              "status": composition.get("status"),
+              "genre": composition.get("genre"),
+              "tempo_bpm": composition.get("tempo_bpm"),
+              "audio_rendered": composition.get("audio_rendered"),
+              "seconds": round(time.monotonic() - start, 1)
+          }), flush=True)
+          assert composition.get("status") == "READY_FOR_OUTPUT_HANDOFF", "NOT_FINISHED_AUDIO"
+          assert composition.get("audio_rendered") is True, "NO_FINISHED_AUDIO"
+          assert composition.get("genre") == "Jazz Ballad", "WRONG_GENRE"
+          diagnostics = composition.get("render_diagnostics") or []
+          by_track = {row.get("track_id"): row for row in diagnostics}
+          needed = {"LEAD":"clarinet_bb","BASS":"double_bass",
+                    "HARMONY":"electric_piano","SNARE":"snare_drum",
+                    "KICK":"kick_drum_rock","HAT":"hi_hat"}
+          for track, instrument in needed.items():
+              d = by_track.get(track)
+              assert d and d.get("instrument_id") == instrument, ("MISSING_TRACK",track,d)
+              assert d.get("note_count",0)>0, ("EMPTY_TRACK",track,d)
+              assert isinstance(d.get("rms_dbfs"),(int,float)) and d["rms_dbfs"] > -105, ("SILENT_TRACK",track,d)
+              print("RECORDED_PART_OK",track,instrument,
+                    "notes",d.get("note_count"),
+                    "rms_dbfs",round(d["rms_dbfs"],1),flush=True)
+          serialized = json.dumps(composition)
+          match = re.search(r'/audio/final_audio/composition_[A-Za-z0-9_-]+/stereo_derivative\.wav',serialized)
+          assert match, "NO_FINAL_STEREO_AUDIO_PATH_IN_HANDOFF"
+          wav_url = base + match.group(0)
+          head_request = urllib.request.Request(wav_url, method="HEAD")
+          with urllib.request.urlopen(head_request,timeout=35) as response:
+              mime=response.headers.get("Content-Type","")
+              length=int(response.headers.get("Content-Length") or 0)
+              assert response.status in (200,206),(response.status,mime)
+          print("FINAL_WAV_HEAD",mime,length,flush=True)
+          assert mime.startswith("audio/"),"FINAL_AUDIO_IS_NOT_AUDIO"
+          assert length>100000,"FINAL_AUDIO_TOO_SMALL"
+          partial=urllib.request.Request(wav_url,headers={"Range":"bytes=0-1023"})
+          with urllib.request.urlopen(partial,timeout=35) as response:
+              header=response.read(1024)
+              assert response.status in (200,206),response.status
+          assert header.startswith(b"RIFF") and header[8:12]==b"WAVE","NOT_A_PLAYABLE_WAV"
+          print("FINAL_WAV_RANGE_AND_HEADER_PASS",flush=True)
+          with urllib.request.urlopen(wav_url,timeout=90) as response:
+              final=BytesIO(response.read())
+          with wave.open(final,"rb") as reader:
+              channels=reader.getnchannels()
+              samplewidth=reader.getsampwidth()
+              frames=reader.getnframes()
+              samplerate=reader.getframerate()
+              duration=frames/samplerate
+              clip=0
+              energy=0.0
+              count=0
+              while True:
+                  block=reader.readframes(65536)
+                  if not block:
+                      break
+                  if samplewidth == 2:
+                      s=array.array("h")
+                      s.frombytes(block)
+                      count+=len(s)
+                      clip+=sum(abs(v)>=32760 for v in s)
+                      energy+=sum((v/32768)**2 for v in s)
+          print("WAV_AUDIO_PROPERTIES",json.dumps({
+              "channels":channels,"bits":samplewidth*8,"sample_rate":samplerate,
+              "duration_seconds":round(duration,1),"rms_dbfs":round(10*math.log10(energy/count),1) if energy else -200,
+              "hard_clip_ratio":round(clip/max(1,count),6),
+          }),flush=True)
+          assert channels==2 and samplewidth==2 and samplerate>=22050
+          assert duration>=60, ("TRUNCATED_JAZZ",duration)
+          assert energy>0 and clip/max(1,count)<0.05,"SILENT_OR_HARD_CLIPPED_MASTER"
+          print("JAZZ_BALLAD_LIVE_END_TO_END_AUDIO_PASS",flush=True)
+          PY
