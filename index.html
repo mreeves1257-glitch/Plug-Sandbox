@@ -123,6 +123,8 @@ const libraryData=[
 ];
 const $=id=>document.getElementById(id);
 let powered=false,selectedSlot=0,loaded=null,p1Enabled=false,p1TuningReferenceHz=null,p2Applied=false,route="OFF",currentURL=null,currentComposition=null,currentMusicURL=null,baselineCtx=null,baselineOsc=null,baselineGain=null,activeRecorder=null,selectedAudioDevice=null,outputApplied=true;
+// Invalidate any in-flight play()/output-routing operation when STOP is pressed.
+let playbackSerial=0;
 
 const rack=Array(12).fill(null);
 
@@ -143,11 +145,21 @@ function wavSweep(a=20,b=20000,seconds=30,amp=.40,sr=44100){
  return new Blob([buf],{type:"audio/wav"})
 }
 async function playBlob(blob,label){
- stopAudio();currentURL=URL.createObjectURL(blob);const p=$("player");p.src=currentURL;p.volume=Number($("volume").value)/100;
- try{await p.play();$("audioStatus").textContent="AUDIO: PLAYING • "+label;return true}catch(e){$("audioStatus").textContent="AUDIO ERROR: "+(e.message||e);return false}
+ stopAudio();const playToken=playbackSerial;currentURL=URL.createObjectURL(blob);const p=$("player");p.src=currentURL;p.volume=Number($("volume").value)/100;
+ try{await p.play();if(playToken!==playbackSerial)return false;$("audioStatus").textContent="AUDIO: PLAYING • "+label;return true}catch(e){if(playToken!==playbackSerial)return false;$("audioStatus").textContent="AUDIO ERROR: "+(e.message||e);return false}
 }
 
-function stopAudio(){if(activeRecorder){const rec=activeRecorder;activeRecorder=null;if(rec.state!=="inactive")rec.stop()}const p=$("player");p.pause();p.currentTime=0;if(currentURL){URL.revokeObjectURL(currentURL);currentURL=null}if(baselineOsc){try{baselineOsc.stop()}catch(e){}baselineOsc=null}if(baselineCtx){try{baselineCtx.close()}catch(e){}baselineCtx=null;baselineGain=null}}
+function stopAudio(){
+ playbackSerial++;
+ if(activeRecorder){const rec=activeRecorder;activeRecorder=null;if(rec.state!=="inactive")rec.stop()}
+ const p=$("player");
+ // Pause AND unload the media: pausing/resetting the timestamp alone can leave
+ // a pending play() or selected audio resource active on mobile browsers.
+ p.pause();p.removeAttribute("src");p.load();
+ if(currentURL){URL.revokeObjectURL(currentURL);currentURL=null}
+ if(baselineOsc){try{baselineOsc.stop()}catch(e){}baselineOsc=null}
+ if(baselineCtx){try{baselineCtx.close()}catch(e){}baselineCtx=null;baselineGain=null}
+}
 async function playTone(freq){return playBlob(wavTone(freq),freq+" Hz")}
 
 async function routePlayerToSelectedOutput(){
@@ -209,7 +221,9 @@ $("test440").onclick=async()=>{
   const AC=window.AudioContext||window.webkitAudioContext;
   if(!AC)throw new Error("440 Hz diagnostic audio is not supported by this browser");
   baselineCtx=new AC();
+  const playToken=playbackSerial;
   if(baselineCtx.state==="suspended")await baselineCtx.resume();
+  if(playToken!==playbackSerial)return;
   baselineOsc=baselineCtx.createOscillator();baselineGain=baselineCtx.createGain();
   baselineOsc.type="sine";baselineOsc.frequency.setValueAtTime(440,baselineCtx.currentTime);
   baselineGain.gain.setValueAtTime(Math.max(0,Math.min(1,Number($("volume").value)/100))*0.35,baselineCtx.currentTime);
@@ -333,8 +347,14 @@ $("playMusic").onclick=async()=>{
  if($("playMusic").dataset.playbackSource!=="AI_COMPOSITION_RETURN"||currentComposition.playback_source!=="AI_COMPOSITION_RETURN"){$("musicStatus").textContent="MUSIC: WAITING FOR AI COMPOSITION RETURN";return}
  const url=currentMusicURL||currentComposition.audio_url||currentComposition.playback_url||currentComposition.output_url;
  if(!url){$("musicStatus").textContent="MUSIC: "+(currentComposition.message||currentComposition.status||"WAITING FOR AI COMPOSITION - SANDBOX OUTPUT");return}
- stopAudio();const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
- try{await routePlayerToSelectedOutput();await p.play();$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
+ stopAudio();const playToken=playbackSerial;const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
+ try{
+  await routePlayerToSelectedOutput();
+  if(playToken!==playbackSerial)return;
+  await p.play();
+  if(playToken!==playbackSerial)return;
+  $("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value);
+ }catch(e){if(playToken===playbackSerial)$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
 };
 $("stopMusic").onclick=()=>{cancelMusicCreation();stopAudio();$("musicStatus").textContent="MUSIC: STOPPED"};
 $("recordMusic").onclick=async()=>{
@@ -343,7 +363,7 @@ $("recordMusic").onclick=async()=>{
  if(!url){$("musicStatus").textContent="MUSIC: WAITING FOR AI COMPOSITION - SANDBOX OUTPUT";return}
  if(typeof MediaRecorder==="undefined"){$("musicStatus").textContent="MUSIC RECORD ERROR: RECORDING NOT SUPPORTED BY THIS BROWSER";return}
  try{
-  stopAudio();const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
+  stopAudio();const playToken=playbackSerial;const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
   const stream=p.captureStream?p.captureStream():(p.mozCaptureStream?p.mozCaptureStream():null);
   if(!stream){$("musicStatus").textContent="MUSIC RECORD ERROR: PLAYBACK STREAM CAPTURE NOT SUPPORTED";return}
   const recordingGenre=currentComposition.genre||$("genre").value;
@@ -357,7 +377,7 @@ $("recordMusic").onclick=async()=>{
    $("musicStatus").textContent="MUSIC: RECORDING SAVED • "+recordingGenre;
   };
   p.onended=()=>{if(rec.state!=="inactive")rec.stop()};
-  rec.start();await p.play();$("musicStatus").textContent="MUSIC: RECORDING • "+recordingGenre;
+  rec.start();await p.play();if(playToken!==playbackSerial)return;$("musicStatus").textContent="MUSIC: RECORDING • "+recordingGenre;
  }catch(e){if(activeRecorder&&activeRecorder.state!=="inactive")activeRecorder.stop();activeRecorder=null;$("musicStatus").textContent="MUSIC RECORD ERROR: "+(e.message||e)}
 };
 renderLibrary();renderSlots();update();
