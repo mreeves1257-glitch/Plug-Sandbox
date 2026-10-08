@@ -83,7 +83,10 @@ class Handler(BaseHTTPRequestHandler):
             value = response.headers.get(key)
             if value:
                 self.send_header(key, value)
-        if not response.headers.get("Content-Length"):
+        if not response.headers.get("Content-Length") and not is_audio:
+            # JSON responses are already buffered. For streamed WAV without
+            # an upstream length, let HTTP/1.0 close terminate the response;
+            # do not incorrectly advertise zero bytes.
             self.send_header("Content-Length", str(len(data)))
         self._cors()
         self.end_headers()
