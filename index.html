@@ -131,6 +131,7 @@ const $=id=>document.getElementById(id);
 let powered=false,selectedSlot=0,loaded=null,p1Enabled=false,p1TuningReferenceHz=null,p2Applied=false,route="OFF",currentURL=null,currentComposition=null,currentMusicURL=null,baselineCtx=null,baselineOsc=null,baselineGain=null,activeRecorder=null,selectedAudioDevice=null,outputApplied=true;
 // Invalidate any in-flight play()/output-routing operation when STOP is pressed.
 let playbackSerial=0;
+let verifiedMusicURL=null;
 
 const rack=Array(12).fill(null);
 
@@ -218,7 +219,7 @@ function update(){
  $("p1Loaded").textContent=loaded?loaded.label:"NONE";$("p1Status").textContent="P1: "+(p1Enabled?"ENABLED • TUNING A="+p1TuningReferenceHz+" Hz":"OFF");
  $("p2Status").textContent=p2Applied?"P2: APPLIED":"P2: "+(p1Enabled?"READY":"WAITING FOR P1");
  $("p3Status").textContent="P3: "+route;
- $("musicStatus").textContent=musicBusy?"MUSIC: "+musicStage:currentComposition?"MUSIC: "+currentComposition.genre+" • READY TO PLAY":"MUSIC: "+$("genre").value+" • SELECT CREATE NEW MUSIC";
+ $("musicStatus").textContent=musicBusy?"MUSIC: "+musicStage:currentComposition?"MUSIC: "+currentComposition.genre+(verifiedMusicURL===currentMusicURL?" • READY TO PLAY":" • VERIFYING FINAL AUDIO"):"MUSIC: "+$("genre").value+" • SELECT CREATE NEW MUSIC";
  $("livePath").innerHTML=`Library → Rack: ${rack[selectedSlot]?.label||"waiting"}<br>P1: ${p1Enabled?(loaded?.label||"ENABLED")+" • A="+p1TuningReferenceHz+" Hz":"OFF"}<br>P2: ${p2Applied?"APPLIED":"WAITING"}<br>P3: ${route}`;
 }
 $("test440").onclick=async()=>{
@@ -257,7 +258,7 @@ $("stopFreq").onclick=()=>{stopAudio();$("freqStatus").textContent="FREQUENCY: S
 $("genre").onchange=()=>{
  cancelMusicCreation();stopAudio();
  if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);
- currentMusicURL=null;currentComposition=null;
+ currentMusicURL=null;currentComposition=null;verifiedMusicURL=null;
  update();$("musicStatus").textContent="MUSIC: "+$("genre").value+" SELECTED • CREATE NEW MUSIC";
 };
 let musicBusy=false,musicStage='',musicRequestSerial=0,musicAbort=null,musicTimer=null,controlPanelPlugSerial=0;
@@ -374,9 +375,28 @@ function acceptCompositionOutput(detail,base){
  currentMusicURL=url;
  currentComposition={...completed,genre:completed.genre||$("genre").value,
   audio_url:url,playback_source:"AI_COMPOSITION_RETURN"};
+ verifiedMusicURL=null;
  finishMusicRequest();
- $("engineStatus").textContent="AI COMPOSITION: FINAL AUDIO RECEIVED";
- $("musicStatus").textContent="MUSIC: "+currentComposition.genre+" • READY TO PLAY";
+ $("engineStatus").textContent="AI COMPOSITION: VERIFYING FINAL AUDIO";
+ $("musicStatus").textContent="MUSIC: "+currentComposition.genre+" • VERIFYING FINAL AUDIO";
+ const expectedURL=url;
+ fetch(expectedURL,{method:"HEAD",cache:"no-store"}).then(response=>{
+  if(currentMusicURL!==expectedURL)return;
+  const mime=(response.headers.get("content-type")||"").toLowerCase();
+  const size=Number(response.headers.get("content-length")||0);
+  if(!response.ok)throw new Error("HTTP "+response.status);
+  if(!mime.startsWith("audio/")||!Number.isFinite(size)||size<=44)throw new Error("NO_PLAYABLE_AUDIO_FILE");
+  verifiedMusicURL=expectedURL;
+  $("engineStatus").textContent="AI COMPOSITION: FINAL AUDIO AVAILABLE";
+  $("musicStatus").textContent="MUSIC: "+currentComposition.genre+" • READY TO PLAY";
+ }).catch(error=>{
+  if(currentMusicURL!==expectedURL)return;
+  verifiedMusicURL=null;
+  currentComposition=null;
+  currentMusicURL=null;
+  $("engineStatus").textContent="AI COMPOSITION: FINAL AUDIO UNAVAILABLE";
+  $("musicStatus").textContent="MUSIC: AUDIO FILE UNAVAILABLE • "+(error.message||error);
+ });
  return true;
 }
 window.addEventListener('ai-composition-output',e=>acceptCompositionOutput(e.detail));
@@ -394,6 +414,7 @@ $("playMusic").onclick=async()=>{
  if($("playMusic").dataset.playbackSource!=="AI_COMPOSITION_RETURN"||currentComposition.playback_source!=="AI_COMPOSITION_RETURN"){$("musicStatus").textContent="MUSIC: WAITING FOR AI COMPOSITION RETURN";return}
  const url=currentMusicURL||currentComposition.audio_url||currentComposition.playback_url||currentComposition.output_url;
  if(!url){$("musicStatus").textContent="MUSIC: "+(currentComposition.message||currentComposition.status||"WAITING FOR AI COMPOSITION - SANDBOX OUTPUT");return}
+ if(verifiedMusicURL!==url){$("musicStatus").textContent="MUSIC: FINAL AUDIO FILE NOT YET VERIFIED";return}
  stopAudio();const playToken=playbackSerial;const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
  try{
   await routePlayerToSelectedOutput();
@@ -408,6 +429,7 @@ $("recordMusic").onclick=async()=>{
  if(!currentComposition){$("musicStatus").textContent="MUSIC: WAITING TO RECEIVE AI COMPOSITION AUDIO";return}
  const url=currentMusicURL||currentComposition.audio_url||currentComposition.playback_url||currentComposition.output_url;
  if(!url){$("musicStatus").textContent="MUSIC: WAITING FOR AI COMPOSITION - SANDBOX OUTPUT";return}
+ if(verifiedMusicURL!==url){$("musicStatus").textContent="MUSIC RECORD ERROR: FINAL AUDIO FILE NOT YET VERIFIED";return}
  if(typeof MediaRecorder==="undefined"){$("musicStatus").textContent="MUSIC RECORD ERROR: RECORDING NOT SUPPORTED BY THIS BROWSER";return}
  try{
   stopAudio();const playToken=playbackSerial;const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
