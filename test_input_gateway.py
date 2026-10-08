@@ -21,6 +21,11 @@ class FakeComposer(BaseHTTPRequestHandler):
             self.send_response(404)
             self.send_header("Content-Length", "0")
             self.end_headers()
+        elif self.path == "/audio/no-length.wav":
+            self.send_response(200)
+            self.send_header("Content-Type", "audio/wav")
+            self.end_headers()
+            self.wfile.write(b"RIFF" + b"Z" * 8000)
         elif self.path == "/audio/final_audio/composition_test/stereo_derivative.wav":
             contents = b"RIFF" + b"X" * (200 * 1024)
             range_header = self.headers.get("Range")
@@ -76,6 +81,11 @@ class PlugContractTests(unittest.TestCase):
                 self.assertEqual(result.headers["Content-Range"], "bytes 0-100/204804")
             with urlopen("http://127.0.0.1:%s/health" % proxy.server_port) as result:
                 self.assertEqual(json.load(result)["status"], "COMPOSER_READY")
+            # An unknown source length must not become an incorrect zero-byte
+            # response as audio flows through the pass-through plug.
+            with urlopen("http://127.0.0.1:%s/audio/no-length.wav" % proxy.server_port) as result:
+                self.assertIsNone(result.headers.get("Content-Length"))
+                self.assertEqual(len(result.read()), 8004)
         finally:
             proxy.shutdown()
             fake.shutdown()
