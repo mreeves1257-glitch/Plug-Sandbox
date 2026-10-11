@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Control Panel — Audio & Music Playback</title>
+<meta name="panel-revision" content="R1-2026-10-11-hosted-repair"><title>Control Panel — Audio & Music Playback</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#07111d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -33,7 +33,7 @@ button[hidden],.row[hidden]{display:none!important}.install-status{font-size:.82
 <h1>CONTROL PANEL</h1>
 <div class="row"><button id="installApp" class="primary" type="button">INSTALL APP</button><button id="downloadPanel" type="button">DOWNLOAD PANEL</button></div><div id="installStatus" class="install-status" role="status"></div>
 <section class="card" id="tuningReference" style="margin:8px 0 12px"><h2>MUSICAL TUNING REFERENCE</h2>
-<div class="note">Global musical tuning instruction for AI Composition. This is separate from the pure-frequency research controls below.</div>
+<div class="note">440 Hz uses the connected hosted Composer. Native 432 Hz rendering is available in the separate local repair; this hosted connection has not confirmed 432 Hz support.</div>
 <label>Tuning Reference<select id="musicTuning" class="full"><option value="440" selected>A = 440 Hz</option><option value="432">A = 432 Hz</option></select></label>
 <div id="tuningStatus" class="status">MUSICAL TUNING: A = 440 Hz</div></section>
 <div class="sub">Frequency Library → Slots 1–12 → Portal 1 → Portal 2 → Portal 3 • media-audio engine</div>
@@ -87,7 +87,7 @@ button[hidden],.row[hidden]{display:none!important}.install-status{font-size:.82
 <div id="engineStatus" class="status">AI COMPOSITION: READY FOR REQUEST</div>
 <div class="row"><button id="createMusic" class="primary">CREATE NEW MUSIC</button><button id="playMusic">▶ PLAY MUSIC</button><button id="stopMusic">■ STOP MUSIC</button><button id="recordMusic">● RECORD</button></div>
 <div id="musicStatus" class="status">MUSIC: ROCK • READY</div><div id="composeProgress" class="composeProgress" hidden><span class="composeSpinner" aria-hidden="true"></span><div><strong id="composeProgressTitle">COMPOSING…</strong><div id="composeProgressTime" class="small">Elapsed 0:00 • Estimated about 2:00 remaining</div></div></div>
-<div class="note">The Control Panel does not generate, synthesize, sample, arrange, or render music. CREATE NEW MUSIC sends the selected genre/style and tuning-reference request with the selected Portal 3 MUSIC or BOTH route through the pass-through Plug to the separate AI Composition — Sandbox composing section, which is the sole music and sound authority. PLAY, STOP, and RECORD operate only on completed AI Composition audio returned to the panel.</div></section>
+<div class="note">The Control Panel does not generate, synthesize, sample, arrange, or render music. CREATE NEW MUSIC sends the selected genre/style and tuning-reference request with the selected Portal 3 MUSIC or BOTH route through the pass-through Plug to the separate AI Composition — Sandbox composing section, which is the sole music and sound authority. PLAY, STOP, and SAVE WAV operate only on completed AI Composition audio returned to the panel.</div></section>
 
 <section class="card"><h2 id="outputPanel">OUTPUT</h2>
 <div class="note"><strong>AUDIO OUTPUT:</strong> Choose a browser/OS audio device when supported. Otherwise PLAY MUSIC follows this phone/computer's current system media output.</div>
@@ -135,12 +135,14 @@ const libraryData=[
 {id:'HI-011',label:'20,000 Hz',category:'High Audible'}
 ];
 const $=id=>document.getElementById(id);
+let playbackSerial=0;
 let powered=false,selectedSlot=0,loaded=null,p1Enabled=false,p1TuningReferenceHz=null,p2Applied=false,route="OFF",currentURL=null,currentComposition=null,currentMusicURL=null,baselineCtx=null,baselineOsc=null,baselineGain=null,activeRecorder=null,selectedAudioDevice=null,outputApplied=true;
 
 const rack=Array(12).fill(null);
 
 function hzOf(x){return Number(String(x.label).replace(/,/g,"").replace(/\s*Hz/i,""))}
 function wavTone(freq=440,seconds=20,amp=.45,sr=44100){
+ if(!Number.isFinite(freq)||freq<=0||freq>20000||!Number.isFinite(seconds)||seconds<=0||seconds>300)throw new Error("Invalid tone bounds");
  const n=Math.floor(sr*seconds),b=new ArrayBuffer(44+n*2),v=new DataView(b),w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
  w(0,"RIFF");v.setUint32(4,36+n*2,true);w(8,"WAVE");w(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*2,true);
@@ -148,6 +150,7 @@ function wavTone(freq=440,seconds=20,amp=.45,sr=44100){
 }
 
 function wavSweep(a=20,b=20000,seconds=30,amp=.40,sr=44100){
+ if(![a,b,seconds].every(Number.isFinite)||a<=0||b<=0||a>20000||b>20000||seconds<=0||seconds>300)throw new Error("Invalid sweep bounds");
  const n=Math.floor(sr*seconds),buf=new ArrayBuffer(44+n*2),v=new DataView(buf),w=(o,t)=>{for(let i=0;i<t.length;i++)v.setUint8(o+i,t.charCodeAt(i))};
  w(0,"RIFF");v.setUint32(4,36+n*2,true);w(8,"WAVE");w(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
  v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,"data");v.setUint32(40,n*2,true);
@@ -157,10 +160,12 @@ function wavSweep(a=20,b=20000,seconds=30,amp=.40,sr=44100){
 }
 async function playBlob(blob,label){
  stopAudio();currentURL=URL.createObjectURL(blob);const p=$("player");p.src=currentURL;p.volume=Number($("volume").value)/100;
- try{await p.play();$("audioStatus").textContent="AUDIO: PLAYING • "+label;return true}catch(e){$("audioStatus").textContent="AUDIO ERROR: "+(e.message||e);return false}
+ const serial=playbackSerial;
+ try{await p.play();if(serial!==playbackSerial){p.pause();return false}$("audioStatus").textContent="AUDIO: PLAYING • "+label;return true}catch(e){$("audioStatus").textContent="AUDIO ERROR: "+(e.message||e);return false}
 }
 
-function stopAudio(){if(activeRecorder){const rec=activeRecorder;activeRecorder=null;if(rec.state!=="inactive")rec.stop()}const p=$("player");p.pause();p.currentTime=0;if(currentURL){URL.revokeObjectURL(currentURL);currentURL=null}if(baselineOsc){try{baselineOsc.stop()}catch(e){}baselineOsc=null}if(baselineCtx){try{baselineCtx.close()}catch(e){}baselineCtx=null;baselineGain=null}}
+function stopAudio(){playbackSerial++;$("audioStatus").textContent="AUDIO: STOPPED";$("freqStatus").textContent="FREQUENCY: STOPPED";$("sweepStatus").textContent="SWEEP: STOPPED";
+if(activeRecorder){const rec=activeRecorder;activeRecorder=null;if(rec.state!=="inactive")rec.stop()}const p=$("player");p.pause();p.currentTime=0;if(currentURL){URL.revokeObjectURL(currentURL);currentURL=null}if(baselineOsc){try{baselineOsc.stop()}catch(e){}baselineOsc=null}if(baselineCtx){try{baselineCtx.close()}catch(e){}baselineCtx=null;baselineGain=null}}
 async function playTone(freq){return playBlob(wavTone(freq),freq+" Hz")}
 async function routePlayerToSelectedOutput(){
  const p=$("player");
@@ -211,7 +216,7 @@ function renderSlots(){$("slots").innerHTML="";rack.forEach((x,i)=>{const b=docu
 function update(){
  $("rackStatus").textContent="Selected: Slot "+(selectedSlot+1)+(rack[selectedSlot]?" • "+rack[selectedSlot].label:" • EMPTY");
  $("p1Loaded").textContent=loaded?loaded.label:"NONE";$("p1Status").textContent="P1: "+(p1Enabled?"ENABLED • TUNING A="+p1TuningReferenceHz+" Hz":"OFF");
- $("p2Status").textContent=p2Applied?"P2: APPLIED":"P2: "+(p1Enabled?"READY":"WAITING FOR P1");
+ $("p2Status").textContent=p2Applied?"P2: SETTINGS APPLIED":"P2: "+(p1Enabled?"READY":"WAITING FOR P1");
  $("p3Status").textContent="P3: "+route;
  $("musicStatus").textContent=musicBusy?"MUSIC: "+musicStage:currentComposition?"MUSIC: "+currentComposition.genre+" • READY TO PLAY":"MUSIC: "+$("genre").value+" • SELECT CREATE NEW MUSIC";
  $("livePath").innerHTML=`Library → Rack: ${rack[selectedSlot]?.label||"waiting"}<br>P1: ${p1Enabled?(loaded?.label||"ENABLED")+" • A="+p1TuningReferenceHz+" Hz":"OFF"}<br>P2: ${p2Applied?"APPLIED":"WAITING"}<br>P3: ${route}`;
@@ -237,14 +242,14 @@ $("search").oninput=renderLibrary;$("clearSlot").onclick=()=>{rack[selectedSlot]
 $("power").onclick=()=>{powered=!powered;$("power").textContent="MASTER POWER: "+(powered?"ON":"OFF");$("systemStatus").textContent="SYSTEM: "+(powered?"ON":"OFF");if(!powered){cancelMusicCreation();stopAudio()}update()};
 $("estop").onclick=()=>{cancelMusicCreation();powered=false;p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";stopAudio();$("power").textContent="MASTER POWER: OFF";$("systemStatus").textContent="SYSTEM: EMERGENCY STOP";update()};
 $("loadP1").onclick=()=>{if(!rack[selectedSlot]){$("p1Status").textContent="P1: SELECT/ASSIGN A SLOT FIRST";return}loaded=rack[selectedSlot];p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";update()};
-$("loadSweep").onclick=()=>{const a=Number($("sweepStart").value),b=Number($("sweepEnd").value),d=Number($("sweepDuration").value);if(!(a>0&&b>0&&d>0)){$("sweepStatus").textContent="SWEEP: CHECK START / END / DURATION";return}loaded={id:"SWEEP",label:"SWEEP "+a+"–"+b+" Hz",category:"Sweep Source",type:"sweep",sweep:{a,b,d}};p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";$("sweepStatus").textContent="SWEEP: LOADED INTO P1 • "+a+" → "+b+" Hz";update()};
+$("loadSweep").onclick=()=>{const a=Number($("sweepStart").value),b=Number($("sweepEnd").value),d=Number($("sweepDuration").value);if(![a,b,d].every(Number.isFinite)||!(a>0&&b>0&&d>0&&a<=20000&&b<=20000&&d<=300)){$("sweepStatus").textContent="SWEEP: CHECK START / END / DURATION";return}loaded={id:"SWEEP",label:"SWEEP "+a+"–"+b+" Hz",category:"Sweep Source",type:"sweep",sweep:{a,b,d}};p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";$("sweepStatus").textContent="SWEEP: LOADED INTO P1 • "+a+" → "+b+" Hz";update()};
 $("startSweep").onclick=async()=>{if(!loaded||loaded.type!=="sweep"){$("sweepStatus").textContent="SWEEP: LOAD SWEEP INTO P1 FIRST";return}if(!powered||!p1Enabled||!p2Applied||route==="OFF"){$("sweepStatus").textContent="SWEEP: COMPLETE P1 → P2 → P3 FIRST";return}const q=loaded.sweep;const ok=await playBlob(wavSweep(q.a,q.b,q.d),"SWEEP "+q.a+" → "+q.b+" Hz");$("sweepStatus").textContent=ok?"SWEEP: PLAYING • "+q.a+" → "+q.b+" Hz • "+q.d+" sec":"SWEEP: AUDIO FAILED"};
-$("pauseSweep").onclick=()=>{const p=$("player");if(p.paused){p.play();$("sweepStatus").textContent="SWEEP: RESUMED"}else{p.pause();$("sweepStatus").textContent="SWEEP: PAUSED"}};
+$("pauseSweep").onclick=()=>{const p=$("player");if(p.paused){if(!powered||!p1Enabled||!p2Applied||route==="OFF"){$("sweepStatus").textContent="SWEEP: COMPLETE POWER / PORTALS FIRST";return}p.play().catch(e=>{$("sweepStatus").textContent="SWEEP ERROR: "+e.message});$("sweepStatus").textContent="SWEEP: RESUMED"}else{p.pause();$("sweepStatus").textContent="SWEEP: PAUSED"}};
 $("stopSweep").onclick=()=>{stopAudio();$("sweepStatus").textContent="SWEEP: STOPPED • READY"};
 
 $("enableP1").onclick=()=>{if(!powered){$("p1Status").textContent="P1: TURN MASTER POWER ON FIRST";return}if(!loaded){$("p1Status").textContent="P1: LOAD A SOURCE FIRST";return}p1TuningReferenceHz=Number($("musicTuning").value);p1Enabled=true;p2Applied=false;route="OFF";$("route").value="OFF";update()};
 $("applyP2").onclick=()=>{if(!powered||!p1Enabled){$("p2Status").textContent="P2: WAITING FOR POWERED P1";return}p2Applied=true;update()};
-$("applyP3").onclick=()=>{if(!p2Applied){$("p3Status").textContent="P3: APPLY PORTAL 2 FIRST";return}route=$("route").value;update()};
+$("applyP3").onclick=()=>{if(!p2Applied){$("p3Status").textContent="P3: APPLY PORTAL 2 FIRST";return}route=$("route").value;if(route==="OFF"){cancelMusicCreation();stopAudio()}update()};
 $("playFreq").onclick=async()=>{if(!powered){$("freqStatus").textContent="FREQUENCY: TURN MASTER POWER ON";return}if(!loaded||!p1Enabled){$("freqStatus").textContent="FREQUENCY: LOAD AND ENABLE P1";return}if(!p2Applied){$("freqStatus").textContent="FREQUENCY: APPLY PORTAL 2";return}if(route==="OFF"){$("freqStatus").textContent="FREQUENCY: APPLY PORTAL 3 ROUTE";return}if(loaded.type==="sweep"){$("freqStatus").textContent="FREQUENCY: USE START SWEEP";return}const f=hzOf(loaded);const ok=await playTone(f);$("freqStatus").textContent=ok?"FREQUENCY: PLAYING • "+loaded.label+" • ROUTE "+route:"FREQUENCY: AUDIO FAILED"};
 $("stopFreq").onclick=()=>{stopAudio();$("freqStatus").textContent="FREQUENCY: STOPPED"};
 $("genre").onchange=()=>{
@@ -288,6 +293,7 @@ function replyReason(reply){const detail=reply?.ai_composition||reply;return det
 async function sendCompositionRequest(){
  if(!powered){$('musicStatus').textContent='MUSIC: TURN MASTER POWER ON';return;}
  if(!['MUSIC','BOTH'].includes(route)){$('musicStatus').textContent='MUSIC: SELECT MUSIC OR BOTH IN PORTAL 3 AND APPLY ROUTE';return;}
+ if(Number($('musicTuning').value)!==440){$('musicStatus').textContent='MUSIC: HOSTED 432 Hz SUPPORT IS NOT CONFIRMED • SELECT 440 Hz OR USE THE LOCAL REPAIR';return;}
  if(musicBusy){$('musicStatus').textContent='MUSIC: WAIT FOR CREATION TO COMPLETE';return;}
  const serial=++musicRequestSerial,request=compositionRequest();
  const controller=new AbortController();musicAbort=controller;let timedOut=false;
@@ -312,13 +318,13 @@ async function sendCompositionRequest(){
   if(type.includes('audio/')){
    if(!response.ok)throw new Error('AI Composition gateway returned HTTP '+response.status);
    const blob=await response.blob();if(serial!==musicRequestSerial)return request;
-   if(!acceptCompositionOutput({genre:request.genre,audio_blob:blob,source:'AI Composition - Sandbox'},base))throw new Error('AI Composition returned empty audio');
+   if(!await acceptCompositionOutput({genre:request.genre,audio_blob:blob,source:'AI Composition - Sandbox'},base,controller.signal,serial))throw new Error('AI Composition returned empty audio');
   }else{
    let composerReply;try{composerReply=await response.json()}catch(e){throw new Error('AI Composition returned an unreadable composition response');}
    if(serial!==musicRequestSerial)return request;
    if(!response.ok)throw new Error(replyReason(composerReply)+' (HTTP '+response.status+')');
    const detail=composerReply?.ai_composition||composerReply;
-   if(!acceptCompositionOutput(detail,base)){
+   if(!await acceptCompositionOutput(detail,base,controller.signal,serial)){
     $('engineStatus').textContent='AI COMPOSITION: CONNECTED • AUDIO NOT READY';
     $('musicStatus').textContent='MUSIC: '+request.genre+' • '+replyReason(composerReply);
    }
@@ -350,18 +356,30 @@ function findPlugAudioURL(value,base){
  }
  return null;
 }
-function acceptCompositionOutput(detail,base){
- if(!detail)return false;
- const plugURL=findPlugAudioURL(detail,base);if(plugURL&&!detail.audio_url)detail={...detail,audio_url:plugURL};
- const genre=detail.genre||$("genre").value;
- if(detail.audio_rendered&&detail.audio_render?.audio_url&&!detail.audio_url)detail={...detail,audio_url:detail.audio_render.audio_url};
- if(detail.audio_blob instanceof Blob&&detail.audio_blob.size>0){if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);currentMusicURL=URL.createObjectURL(detail.audio_blob);currentComposition={...detail,genre,playback_source:'AI_COMPOSITION_RETURN',audio_blob:detail.audio_blob};}
- else if(detail.audio_url||detail.playback_url||detail.output_url){const url=new URL(detail.audio_url||detail.playback_url||detail.output_url,base||compositionAddress());if(!['http:','https:','blob:'].includes(url.protocol))return false;currentMusicURL=url.href;currentComposition={...detail,genre,playback_source:'AI_COMPOSITION_RETURN'};}
- else return false;
- finishMusicRequest();$("engineStatus").textContent="AI COMPOSITION: OUTPUT RECEIVED";$("musicStatus").textContent="MUSIC: "+genre+" • AI COMPOSITION OUTPUT • READY TO PLAY";return true;
+async function verifiedWav(blob){
+ const bytes=await blob.arrayBuffer(),v=new DataView(bytes),tag=o=>String.fromCharCode(...new Uint8Array(bytes,o,4));
+ if(bytes.byteLength<44||tag(0)!=='RIFF'||tag(8)!=='WAVE'||v.getUint32(4,true)+8!==bytes.byteLength)throw new Error('Incomplete WAV output');
+ let fmt=null,data=0;
+ for(let o=12;o+8<=bytes.byteLength;){const n=v.getUint32(o+4,true),next=o+8+n;if(next>bytes.byteLength)throw new Error('Truncated WAV chunk');const t=tag(o);if(t==='fmt '){if(n<16)throw new Error('Invalid WAV format');fmt={encoding:v.getUint16(o+8,true),channels:v.getUint16(o+10,true),rate:v.getUint32(o+12,true),align:v.getUint16(o+20,true),bits:v.getUint16(o+22,true)};}if(t==='data')data+=n;o=next+(n%2);}
+ if(!fmt||![1,3].includes(fmt.encoding)||!fmt.channels||!fmt.rate||!fmt.align||fmt.align!==fmt.channels*fmt.bits/8||!data||data%fmt.align)throw new Error('Invalid or empty PCM output');
+ return {blob:new Blob([bytes],{type:'audio/wav'}),sha256:Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join(''),duration_seconds:data/(fmt.rate*fmt.align)};
 }
-window.addEventListener('ai-composition-output',e=>acceptCompositionOutput(e.detail));
-window.addEventListener('message',e=>{let origin;try{origin=new URL(compositionAddress()).origin}catch(err){return}if(e.origin!==origin)return;if(e.data&&e.data.type==='AI_COMPOSITION_OUTPUT')acceptCompositionOutput(e.data)});
+async function acceptCompositionOutput(detail,base,signal,serial=musicRequestSerial){
+ if(!detail)return false;
+ let blob=detail.audio_blob;
+ if(!(blob instanceof Blob)){
+  const path=findPlugAudioURL(detail,base);if(!path)return false;
+  const url=new URL(path),allowed=new URL(base||compositionAddress());
+  if(url.origin!==allowed.origin||!url.pathname.startsWith('/audio/')||url.username||url.password)throw new Error('Unexpected audio output address');
+  const response=await fetch(url.href,{cache:'no-store',signal});if(!response.ok)throw new Error('Audio download failed (HTTP '+response.status+')');blob=await response.blob();
+ }
+ const checked=await verifiedWav(blob);if(serial!==musicRequestSerial)return false;
+ if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);
+ currentMusicURL=URL.createObjectURL(checked.blob);currentComposition={...detail,genre:detail.genre||$('genre').value,audio_blob:checked.blob,audio_sha256:checked.sha256,duration_seconds:checked.duration_seconds,playback_source:'VERIFIED_AI_COMPOSITION_RETURN'};
+ $('engineStatus').textContent='AI COMPOSITION: COMPLETE WAV VERIFIED';$('musicStatus').textContent='MUSIC: '+currentComposition.genre+' • READY TO PLAY';return true;
+}
+window.addEventListener('ai-composition-output',e=>acceptCompositionOutput(e.detail).catch(err=>{$('musicStatus').textContent='MUSIC OUTPUT ERROR: '+err.message}));
+window.addEventListener('message',e=>{let origin;try{origin=new URL(compositionAddress()).origin}catch(err){return}if(e.origin!==origin)return;if(e.data&&e.data.type==='AI_COMPOSITION_OUTPUT')acceptCompositionOutput(e.data).catch(err=>{$('musicStatus').textContent='MUSIC OUTPUT ERROR: '+err.message})});
 $("chooseAudioDevice").onclick=chooseRealAudioOutput;
 $("applyOutput").onclick=applySelectedOutput;
 (function(){
@@ -370,44 +388,30 @@ $("applyOutput").onclick=applySelectedOutput;
 })();
 $("createMusic").onclick=()=>sendCompositionRequest();
 $("playMusic").onclick=async()=>{
+ if(!powered||!p1Enabled||!p2Applied||!["MUSIC","BOTH"].includes(route)){$("musicStatus").textContent="MUSIC: COMPLETE POWER / MUSIC ROUTE FIRST";return}
  if(musicBusy){$("musicStatus").textContent="MUSIC: WAIT FOR CREATION TO COMPLETE";return}
  if(!currentComposition){$("musicStatus").textContent="MUSIC: CREATE A COMPOSITION FIRST";return}
  const url=currentMusicURL||currentComposition.audio_url||currentComposition.playback_url||currentComposition.output_url;
  if(!url){$("musicStatus").textContent="MUSIC: "+(currentComposition.message||currentComposition.status||"WAITING FOR AI COMPOSITION - SANDBOX OUTPUT");return}
  stopAudio();const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
- try{await routePlayerToSelectedOutput();await p.play();$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
+ const serial=playbackSerial;
+ try{await routePlayerToSelectedOutput();if(serial!==playbackSerial)return;await p.play();if(serial!==playbackSerial){p.pause();return}$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
 };
 $("stopMusic").onclick=()=>{cancelMusicCreation();stopAudio();$("musicStatus").textContent="MUSIC: STOPPED"};
-$("recordMusic").onclick=async()=>{
- if(!currentComposition){$("musicStatus").textContent="MUSIC: CREATE A COMPOSITION FIRST";return}
- const url=currentMusicURL||currentComposition.audio_url||currentComposition.playback_url||currentComposition.output_url;
- if(!url){$("musicStatus").textContent="MUSIC: WAITING FOR AI COMPOSITION - SANDBOX OUTPUT";return}
- if(typeof MediaRecorder==="undefined"){$("musicStatus").textContent="MUSIC RECORD ERROR: RECORDING NOT SUPPORTED BY THIS BROWSER";return}
- try{
-  stopAudio();const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
-  const stream=p.captureStream?p.captureStream():(p.mozCaptureStream?p.mozCaptureStream():null);
-  if(!stream){$("musicStatus").textContent="MUSIC RECORD ERROR: PLAYBACK STREAM CAPTURE NOT SUPPORTED";return}
-  const recordingGenre=currentComposition.genre||$("genre").value;
-  const chunks=[],rec=new MediaRecorder(stream);activeRecorder=rec;
-  rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-  rec.onstop=()=>{
-   if(activeRecorder===rec)activeRecorder=null;
-   const blob=new Blob(chunks,{type:rec.mimeType||"audio/webm"}),u=URL.createObjectURL(blob),a=document.createElement("a");
-   const safe=String(recordingGenre||"composition").replace(/[^a-z0-9_-]+/gi,"_");
-   a.href=u;a.download=safe+"_recording.webm";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);
-   $("musicStatus").textContent="MUSIC: RECORDING SAVED • "+recordingGenre;
-  };
-  p.onended=()=>{if(rec.state!=="inactive")rec.stop()};
-  rec.start();await p.play();$("musicStatus").textContent="MUSIC: RECORDING • "+recordingGenre;
- }catch(e){if(activeRecorder&&activeRecorder.state!=="inactive")activeRecorder.stop();activeRecorder=null;$("musicStatus").textContent="MUSIC RECORD ERROR: "+(e.message||e)}
+$('recordMusic').textContent='SAVE WAV';
+$('recordMusic').onclick=()=>{
+ if(!powered||!['MUSIC','BOTH'].includes(route)){$('musicStatus').textContent='MUSIC: TURN POWER ON / SELECT MUSIC ROUTE';return}
+ if(!currentComposition?.audio_blob){$('musicStatus').textContent='MUSIC: CREATE A VERIFIED COMPOSITION FIRST';return}
+ const a=document.createElement('a');a.href=currentMusicURL;a.download=String(currentComposition.genre).replace(/[^a-z0-9_-]+/gi,'_')+'_'+currentComposition.audio_sha256.slice(0,12)+'.wav';document.body.appendChild(a);a.click();a.remove();$('musicStatus').textContent='MUSIC: VERIFIED WAV DOWNLOAD REQUESTED';
 };
+$('player').addEventListener('ended',()=>{$('audioStatus').textContent='AUDIO: FINISHED';$('freqStatus').textContent='FREQUENCY: FINISHED';$('sweepStatus').textContent='SWEEP: FINISHED';if(currentComposition)$('musicStatus').textContent='MUSIC: FINISHED • '+currentComposition.genre;});
 
 // A selection configures the route; only explicit playback buttons start audio.
 const settingsKey='ai-composer-external-panel-settings';
 const settingIds=['musicTuning','genre','sigDiag','physDiag','medDiag','route','volume','sweepStart','sweepEnd','sweepDuration'];
 function saveSelections(){try{localStorage.setItem(settingsKey,JSON.stringify({values:Object.fromEntries(settingIds.map(id=>[id,$(id).value])),rack:rack.map(x=>x?.id||null),selectedSlot}));}catch(e){}}
 function applySelections(){
- loaded=rack[selectedSlot]||null;p1Enabled=powered&&!!loaded;p1TuningReferenceHz=Number($('musicTuning').value);p2Applied=p1Enabled;route=$('route').value;
+ if(loaded?.type!=='sweep')loaded=rack[selectedSlot]||null;p1Enabled=powered&&!!loaded;p1TuningReferenceHz=Number($('musicTuning').value);p2Applied=p1Enabled;route=$('route').value;if(!powered||route==='OFF'){cancelMusicCreation();stopAudio()}
  $('tuningStatus').textContent='MUSICAL TUNING: A = '+$('musicTuning').value+' Hz';
  update();saveSelections();
 }
@@ -419,9 +423,9 @@ try{
  }else{$('route').value='MUSIC';}
 }catch(e){$('route').value='MUSIC';}
 for(const id of settingIds){$(id).addEventListener('change',applySelections);}
-$('library').addEventListener('click',e=>{if(e.target.closest('button'))applySelections();});
-$('slots').addEventListener('click',e=>{if(e.target.closest('button'))applySelections();});
-$('clearSlot').addEventListener('click',applySelections);
+$('library').addEventListener('click',e=>{if(e.target.closest('button')){loaded=rack[selectedSlot]||null;applySelections();}});
+$('slots').addEventListener('click',e=>{if(e.target.closest('button')){loaded=rack[selectedSlot]||null;applySelections();}});
+$('clearSlot').addEventListener('click',()=>{loaded=null;applySelections();});
 $('power').addEventListener('click',applySelections);
 $('estop').addEventListener('click',saveSelections);
 $('loadSweep').addEventListener('click',()=>{if(loaded?.type==='sweep'){p1Enabled=powered;p1TuningReferenceHz=Number($('musicTuning').value);p2Applied=p1Enabled;route=$('route').value==='OFF'?'SCIENCE':$('route').value;$('route').value=route;update();}});
