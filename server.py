@@ -162,6 +162,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/":
             self.send(200, (ROOT / "index.html").read_bytes(), "text/html; charset=utf-8")
+        elif self.path == "/phone-preview":
+            self.send(200, '<!doctype html><html lang="en"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Science-Sandbox phone layout check</title><style>body{margin:0;background:#0b1218;display:flex;justify-content:center}iframe{width:390px;max-width:100vw;height:calc(100vh - 24px);margin:12px 0;border:0;border-radius:12px}</style><iframe title="Science-Sandbox at phone width" src="/"></iframe></html>', "text/html; charset=utf-8")
         elif self.path == "/health":
             self.send(200, json.dumps(dict(status="ok", app_version=APP_VERSION,
                 adapters=["native", "wav", "csv"], physical_hardware_connected=False,
