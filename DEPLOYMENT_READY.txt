@@ -1,2 +1,0 @@
-Clean shared plug deployment repository initialized.
-Composer core remains unchanged.

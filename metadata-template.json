@@ -1,0 +1,39 @@
+{
+  "mode": "FILE_IMPORT",
+  "run_id": null,
+  "experiment_id": null,
+  "component_id": null,
+  "source_fingerprint": null,
+  "captured_at": null,
+  "device": {
+    "manufacturer": null,
+    "model": null,
+    "asset_id": null
+  },
+  "channels": [
+    {
+      "id": null,
+      "quantity": null,
+      "native_units": null,
+      "engineering_units": null,
+      "scale": null,
+      "offset": null,
+      "uncertainty": null,
+      "conditioning": null,
+      "calibration_reference": null,
+      "calibration_date": null,
+      "calibration_due": null,
+      "sample_rate_hz": null,
+      "bandwidth_low_hz": null,
+      "bandwidth_high_hz": null,
+      "anti_alias_filter": null
+    }
+  ],
+  "timing": {
+    "clock_source": null,
+    "method": null,
+    "measured_alignment_error_seconds": null
+  },
+  "actual_conditions": [],
+  "deviations": []
+}

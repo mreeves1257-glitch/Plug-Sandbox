@@ -1,0 +1,12 @@
+{
+  "channels": {
+    "REPLACE_WITH_ACTUAL_CHANNEL_ID": {
+      "quantity": null,
+      "engineering_units": null,
+      "bandwidth_low_hz": null,
+      "bandwidth_high_hz": null,
+      "uncertainty": null
+    }
+  },
+  "max_alignment_error_seconds": null
+}
