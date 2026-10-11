@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
-<!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="panel-revision" content="R4-2026-10-11-fixed-power"><title>Control Panel — Audio & Music Playback</title>
+<!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="panel-revision" content="R5-2026-10-11-phone-offline"><title>Control Panel — Audio & Music Playback</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#07111d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -40,12 +40,25 @@ button,select,input,.quicklink{background:white;color:black;border-color:#888}
 h1{font-size:18pt}.note,.small,.sub{opacity:1}
 }
 @media(max-width:360px){.wrap{padding:6px}.top{flex-wrap:wrap}button,select,input{max-width:100%}.slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* One narrow-screen column; fixed power controls and one scrollable body. */
+.wrap{width:100%;padding:8px;padding-top:max(8px,env(safe-area-inset-top));padding-right:max(8px,env(safe-area-inset-right));padding-bottom:max(8px,env(safe-area-inset-bottom));padding-left:max(8px,env(safe-area-inset-left))}
+.grid{grid-template-columns:minmax(0,1fr);align-content:start;overflow-x:hidden}
+.powerBar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin:0 0 8px;gap:6px}
+.powerBar button{min-width:0;padding:8px 4px;font-size:14px;min-height:44px}
+.top{flex-wrap:wrap}.quicklink{flex:1 1 140px;min-width:0;white-space:normal}
+.card{padding:10px;min-width:0;max-width:100%}
+.row>button{flex:1 1 140px;min-width:0;max-width:100%;white-space:normal}
+button,select,input{max-width:100%;font-size:16px}
+.status,.note,.sub,.path,.small{overflow-wrap:anywhere}
+.librow{grid-template-columns:minmax(0,1fr) auto}.slots{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media print{.wrap{width:auto}.grid{display:block}.powerBar{display:flex}}
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
 </head><body>
 <div class="wrap">
-<div class="row powerBar"><button id="power" class="primary">MASTER POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button><span id="systemStatus" class="status">SYSTEM: OFF</span></div>
+<div class="row powerBar"><button id="power" class="primary">POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button></div>
 <div class="grid" id="panelScroll">
 <h1>CONTROL PANEL</h1>
+<div id="systemStatus" class="status">SYSTEM: OFF</div>
 
 
 
@@ -256,8 +269,8 @@ $("stopAudio").onclick=()=>{stopAudio();$("audioStatus").textContent="AUDIO: STO
 $("volume").oninput=()=>{$("volText").textContent=$("volume").value+"%";$("player").volume=Number($("volume").value)/100;if(baselineGain&&baselineCtx)baselineGain.gain.setValueAtTime(Number($("volume").value)/100*0.35,baselineCtx.currentTime)};
 $("musicTuning").onchange=()=>{$("tuningStatus").textContent="MUSICAL TUNING: A = "+$("musicTuning").value+" Hz";update()};
 $("search").oninput=renderLibrary;$("clearSlot").onclick=()=>{rack[selectedSlot]=null;renderSlots();update()};
-$("power").onclick=()=>{powered=!powered;$("power").textContent="MASTER POWER: "+(powered?"ON":"OFF");$("systemStatus").textContent="SYSTEM: "+(powered?"ON":"OFF");if(!powered){cancelMusicCreation();stopAudio()}update()};
-$("estop").onclick=()=>{cancelMusicCreation();powered=false;p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";stopAudio();$("power").textContent="MASTER POWER: OFF";$("systemStatus").textContent="SYSTEM: EMERGENCY STOP";update()};
+$("power").onclick=()=>{powered=!powered;$("power").textContent="POWER: "+(powered?"ON":"OFF");$("systemStatus").textContent="SYSTEM: "+(powered?"ON":"OFF");if(!powered){cancelMusicCreation();stopAudio()}update()};
+$("estop").onclick=()=>{cancelMusicCreation();powered=false;p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";stopAudio();$("power").textContent="POWER: OFF";$("systemStatus").textContent="SYSTEM: EMERGENCY STOP";update()};
 $("loadP1").onclick=()=>{if(!rack[selectedSlot]){$("p1Status").textContent="P1: SELECT/ASSIGN A SLOT FIRST";return}loaded=rack[selectedSlot];p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";update()};
 function loadSweepSource(){
  const a=Number($("sweepStart").value),b=Number($("sweepEnd").value),d=Number($("sweepDuration").value);
