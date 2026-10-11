@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="panel-revision" content="R9-2026-10-11-154100-CDT-original-phone-design"><meta name="original-layout-source" content="AI_Composer_PHONE_Control_Panel_2026-10-11_REQUEST_CONTRACT_FIXED.html"><title>Control Panel — Audio & Music Playback</title>
+<meta name="panel-revision" content="R10-2026-10-11-154300-CDT-original-phone-design"><meta name="original-layout-source" content="AI_Composer_PHONE_Control_Panel_2026-10-11_REQUEST_CONTRACT_FIXED.html"><title>Control Panel — Audio & Music Playback</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#07111d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -47,7 +47,7 @@ button,select,input{max-width:100%}.status,.note,.sub,.small{overflow-wrap:anywh
 @media print{html,body{position:static;height:auto;overflow:visible}.wrap{height:auto;max-height:none;display:block;overflow:visible}#panelScroll{height:auto;overflow:visible}.grid{display:block}.card{break-inside:avoid}#installApp,#downloadPanel,#printPanel,#installStatus{display:none!important}}
 </style></head><body>
 <div class="wrap">
-<div class="row powerBar"><button id="power" class="primary">POWER: OFF</button></div>
+<div class="row powerBar"><button id="power" class="primary">ON / OFF — OFF</button></div>
 <div id="panelScroll" tabindex="0" aria-label="Scrollable panel controls">
 <h1>CONTROL PANEL</h1>
 
@@ -265,8 +265,8 @@ $("stopAudio").onclick=()=>{stopAudio();$("audioStatus").textContent="AUDIO: STO
 $("volume").oninput=()=>{$("volText").textContent=$("volume").value+"%";$("player").volume=Number($("volume").value)/100;if(baselineGain&&baselineCtx)baselineGain.gain.setValueAtTime(Number($("volume").value)/100*0.35,baselineCtx.currentTime)};
 $("musicTuning").onchange=()=>{$("tuningStatus").textContent="MUSICAL TUNING: A = "+$("musicTuning").value+" Hz";update()};
 $("search").oninput=renderLibrary;$("clearSlot").onclick=()=>{rack[selectedSlot]=null;renderSlots();update()};
-$("power").onclick=()=>{powered=!powered;$("power").textContent="POWER: "+(powered?"ON":"OFF");$("systemStatus").textContent="SYSTEM: "+(powered?"ON":"OFF");if(!powered){cancelMusicCreation();stopAudio()}update()};
-$("estop").onclick=()=>{cancelMusicCreation();powered=false;p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";stopAudio();$("power").textContent="POWER: OFF";$("systemStatus").textContent="SYSTEM: EMERGENCY STOP";update()};
+$("power").onclick=()=>{powered=!powered;$("power").textContent="ON / OFF — "+(powered?"ON":"OFF");$("systemStatus").textContent="SYSTEM: "+(powered?"ON":"OFF");if(!powered){cancelMusicCreation();stopAudio()}update()};
+$("estop").onclick=()=>{cancelMusicCreation();powered=false;p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";stopAudio();$("power").textContent="ON / OFF — OFF";$("systemStatus").textContent="SYSTEM: EMERGENCY STOP";update()};
 $("loadP1").onclick=()=>{if(!rack[selectedSlot]){$("p1Status").textContent="P1: SELECT/ASSIGN A SLOT FIRST";return}loaded=rack[selectedSlot];p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";update()};
 function loadSweepSource(){
  const a=Number($("sweepStart").value),b=Number($("sweepEnd").value),d=Number($("sweepDuration").value);
@@ -539,7 +539,7 @@ installButton.addEventListener('click',async()=>{
 document.getElementById('downloadPanel').addEventListener('click',async()=>{
  try{
  const content=location.protocol==='file:'?originalPanelHTML:await fetch(location.pathname,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Download failed');return r.text()});
- const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Phone-R9.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Phone-R10.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
  installStatus.textContent='Panel file downloaded. Music creation needs an internet connection.';
  }catch(e){installStatus.textContent='Download failed: '+e.message;}
 });
