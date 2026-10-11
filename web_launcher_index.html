@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="panel-revision" content="R8-2026-10-11-153700-CDT-play-record"><title>Control Panel — Audio & Music Playback</title>
+<meta name="panel-revision" content="R9-2026-10-11-154100-CDT-original-phone-design"><meta name="original-layout-source" content="AI_Composer_PHONE_Control_Panel_2026-10-11_REQUEST_CONTRACT_FIXED.html"><title>Control Panel — Audio & Music Playback</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#07111d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -20,70 +20,44 @@ button{font-weight:700;min-height:44px}.primary{background:#eee;color:#111}.dang
 *{box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
 body{padding:0;max-width:none}
-.wrap{height:100vh;height:100dvh;max-width:560px;margin:auto;padding:12px;display:flex;flex-direction:column;overflow:hidden;background:#111}
-.top{display:flex;gap:8px}.powerBar{flex:0 0 auto}.powerBar .status{margin-top:0}.wrap>h1,.wrap>.row,.wrap>.sub,.wrap>#tuningReference{flex-shrink:0}
+.wrap{height:100dvh;max-width:560px;margin:auto;padding:12px;display:flex;flex-direction:column;overflow:hidden;background:#111}
+.top{flex:0 0 auto;display:flex;gap:8px}.wrap>h1,.wrap>.row,.wrap>.sub,.wrap>#tuningReference{flex-shrink:0}
 button[hidden],.row[hidden]{display:none!important}.install-status{font-size:.82rem;margin:4px 0 8px}.grid>.card{min-width:0}
 @media(max-height:700px){#tuningReference .note,#tuningStatus,.sub{display:none}#tuningReference{padding:8px}#tuningReference h2{margin:0}#tuningReference label{margin:4px 0}.wrap{padding:8px}h1{font-size:1.1rem;margin:3px 0}.status{padding:5px}}
 .grid{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:20px}
 .quicklink{color:#eee;text-decoration:none;border:1px solid #555;border-radius:9px;padding:9px 10px;background:#191919;font-weight:700;text-align:center;flex:1}
 @media(min-width:700px){body{background:#080808}.wrap{border-left:1px solid #333;border-right:1px solid #333}}
-@media print{
-:root{color-scheme:light;background:white;color:black}
-html,body{height:auto;overflow:visible;background:white;color:black}
-.wrap{height:auto;max-width:none;overflow:visible;display:block;background:white;border:0}
-.grid{display:block;overflow:visible;max-height:none;padding:0}
-.card{background:white;border:1px solid #888;margin:0 0 12px;break-inside:avoid}
-.library{max-height:none;overflow:visible}.status,.composeProgress{background:white;color:black}
-button,select,input,.quicklink{background:white;color:black;border-color:#888}
-#installApp,#downloadPanel,#printPanel,#installStatus,.top{display:none!important}
-.sub,#tuningStatus,#tuningReference .note{display:block!important}
-h1{font-size:18pt}.note,.small,.sub{opacity:1}
-}
-@media(max-width:360px){.wrap{padding:6px}.top{flex-wrap:wrap}button,select,input{max-width:100%}.slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
-/* One narrow-screen column; fixed power controls and one scrollable body. */
-.wrap{width:100%;padding:8px;padding-top:max(8px,env(safe-area-inset-top));padding-right:max(8px,env(safe-area-inset-right));padding-bottom:max(8px,env(safe-area-inset-bottom));padding-left:max(8px,env(safe-area-inset-left))}
-.grid{grid-template-columns:minmax(0,1fr);align-content:start;overflow-x:hidden}
-.powerBar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin:0 0 8px;gap:6px}
-.powerBar button{min-width:0;padding:8px 4px;font-size:14px;min-height:44px}
-.top{flex-wrap:wrap}.quicklink{flex:1 1 140px;min-width:0;white-space:normal}
-.card{padding:10px;min-width:0;max-width:100%}
-.row>button{flex:1 1 140px;min-width:0;max-width:100%;white-space:normal}
-button,select,input{max-width:100%;font-size:16px}
-.status,.note,.sub,.path,.small{overflow-wrap:anywhere}
-.librow{grid-template-columns:minmax(0,1fr) auto}.slots{grid-template-columns:repeat(2,minmax(0,1fr))}
-@media print{.wrap{width:auto}.grid{display:block}.powerBar{display:flex}}
-html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
-.wrap{height:var(--panel-height,100svh);max-height:var(--panel-height,100svh)}
-.scrollFrame{display:flex;flex:1 1 0;min-height:0;overflow:hidden;gap:4px}
-#panelScroll{display:block;flex:1 1 0;min-width:0;min-height:0;height:100%;overflow-y:scroll;overflow-x:hidden;touch-action:pan-y;scrollbar-gutter:stable;scrollbar-width:auto;scrollbar-color:#aaa #222;padding-right:4px}
-#panelScroll>.card{margin-bottom:12px}#panelScroll>h1{margin-top:0}
-#panelScroll::-webkit-scrollbar{width:10px}#panelScroll::-webkit-scrollbar-thumb{background:#aaa;border-radius:5px}#panelScroll::-webkit-scrollbar-track{background:#222}
-.scrollControls{width:44px;flex:0 0 44px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:4px 0}
-.scrollControls button{width:44px;min-height:48px;padding:4px;font-size:20px}.scrollControls span{writing-mode:vertical-rl;font-size:12px;letter-spacing:2px;color:#ccc}
-@media print{html,body{position:static;height:auto}.wrap{height:auto;max-height:none}.scrollFrame{display:block;overflow:visible}#panelScroll{height:auto;overflow:visible}.scrollControls,.appActions{display:none!important}}
-/* ON/OFF alone stays fixed; every other control is in the touch scroll area. */
-.powerBar{display:block}.powerBar #power{width:100%;font-size:16px}
-.library{max-height:none;overflow:visible}
-#panelScroll{height:0;flex:1 1 0;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding-right:0;scrollbar-gutter:auto}
-@media print{#panelScroll{height:auto;overflow:visible}}
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
-</head><body>
+<style>
+.music-bottom-controls{display:flex;align-items:center;gap:10px;margin:12px 0 8px;flex-wrap:nowrap}
+.music-buttons{display:flex;flex:1 1 57%;gap:7px;min-width:0}
+.music-buttons button{flex:1 1 50%;min-width:0;font-size:.84rem;padding:10px 5px}
+.music-volume{flex:0 1 38%;min-width:98px;margin:0;font-size:.85rem}
+.music-volume input{width:100%;margin-top:8px}
+@media(max-width:380px){.music-bottom-controls{gap:5px}.music-buttons{gap:4px}.music-buttons button{font-size:.73rem;padding:9px 3px}.music-volume{min-width:82px;font-size:.75rem}}
+</style><style>
+/* Copy of the selected October 11 phone design: only ON/OFF stays fixed. */
+html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
+.wrap{width:100%;height:var(--panel-height,100svh);max-height:var(--panel-height,100svh);padding-top:max(12px,env(safe-area-inset-top));padding-bottom:max(12px,env(safe-area-inset-bottom))}
+.powerBar{flex:0 0 auto;margin:0 0 8px}.powerBar #power{width:100%}
+#panelScroll{flex:1 1 0;height:0;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;-webkit-overflow-scrolling:touch}
+#panelScroll>.grid{display:grid;flex:none;overflow:visible;grid-template-columns:minmax(0,1fr);align-content:start}
+.library{max-height:none;overflow:visible}.card{min-width:0}
+button,select,input{max-width:100%}.status,.note,.sub,.small{overflow-wrap:anywhere}
+@media print{html,body{position:static;height:auto;overflow:visible}.wrap{height:auto;max-height:none;display:block;overflow:visible}#panelScroll{height:auto;overflow:visible}.grid{display:block}.card{break-inside:avoid}#installApp,#downloadPanel,#printPanel,#installStatus{display:none!important}}
+</style></head><body>
 <div class="wrap">
 <div class="row powerBar"><button id="power" class="primary">POWER: OFF</button></div>
-<div class="grid" id="panelScroll" tabindex="0" aria-label="Scrollable panel controls">
-<h1>CONTROL PANEL</h1><div class="row"><button id="estop" class="danger">EMERGENCY STOP</button></div>
-<div class="row appActions"><button id="installApp" class="primary" type="button">INSTALL APP</button><button id="downloadPanel" type="button">DOWNLOAD PANEL</button></div><div id="installStatus" class="install-status" role="status"></div>
-<div id="systemStatus" class="status">SYSTEM: OFF</div>
-
-
+<div id="panelScroll" tabindex="0" aria-label="Scrollable panel controls">
+<h1>CONTROL PANEL</h1>
 
 <div class="sub">Frequency Library → Slots 1–12 → Portal 1 → Portal 2 → Portal 3 • media-audio engine</div>
-<div class="top"><a class="quicklink" href="#musicPanel">CREATE / PLAY MUSIC</a><a class="quicklink" href="#outputPanel">VOLUME / OUTPUT</a></div>
+<div class="row"><button id="estop" class="danger">EMERGENCY STOP</button><span id="systemStatus" class="status">SYSTEM: OFF</span></div>
 
-
+<div class="grid">
 <section class="card"><h2>AUDIO BASELINE</h2><div class="note">Independent diagnostic only. It bypasses the portals.</div>
 <div class="row"><button id="test440" class="primary">▶ TEST 440 Hz</button><button id="stopAudio">■ STOP</button></div>
-<label>Output Level <strong id="volText">60%</strong><input id="volume" class="full" type="range" min="0" max="100" value="60"></label>
+
 <audio id="player" playsinline preload="auto"></audio><div id="audioStatus" class="status">AUDIO: READY</div></section>
 
 <section class="card"><h2>1 — SOURCE 1 / FREQUENCY LIBRARY</h2>
@@ -103,7 +77,7 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
 
 <section class="card"><h2>2 — PORTAL 1 / SOURCE INTAKE</h2>
 <div>Loaded into P1: <strong id="p1Loaded">NONE</strong></div>
-<div class="row" hidden><button id="loadP1" class="primary">LOAD SELECTED SLOT INTO P1</button><button id="enableP1">ENABLE P1</button></div>
+<div class="row"><button id="loadP1" class="primary">LOAD SELECTED SLOT INTO P1</button><button id="enableP1">ENABLE P1</button></div>
 <div id="p1Status" class="status">P1: OFF</div></section>
 
 <section class="card"><h2>3 — PORTAL 2 / DIAGNOSTIC GATES</h2>
@@ -115,7 +89,7 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
 
 <section class="card"><h2>4 — PORTAL 3 / ROUTING</h2>
 <label>Route<select id="route" class="full"><option>OFF</option><option>SCIENCE</option><option>MUSIC</option><option>BOTH</option></select></label>
-<button hidden id="applyP3" class="primary">APPLY ROUTE</button><div id="p3Status" class="status">P3: OFF</div></section>
+<button id="applyP3" class="primary" type="button">TURN PORTAL 3 ON</button><div id="p3Status" class="status">P3: OFF</div></section>
 
 <section class="card"><h2>FREQUENCY PLAYBACK</h2>
 <div class="note">Normal frequency playback obeys Portal 1 → Portal 2 → Portal 3.</div>
@@ -123,12 +97,17 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
 <div id="freqStatus" class="status">FREQUENCY: STOPPED</div></section>
 
 <section class="card"><h2 id="musicPanel">MUSIC / COMPOSITION</h2>
-<label>Musical Tuning<select id="musicTuning" class="full"><option value="440" selected>A = 440 Hz</option><option value="432">A = 432 Hz</option></select></label><div id="tuningStatus" class="status">MUSICAL TUNING: A = 440 Hz</div>
+<label>Tuning Reference<select id="musicTuning" class="full"><option value="440" selected>A = 440 Hz</option><option value="432">A = 432 Hz</option></select></label>
+<div id="tuningStatus" class="status">MUSICAL TUNING: A = 440 Hz</div>
 <label>Genre / Style<select id="genre" class="full"><option>ROCK</option><option>New Age</option><option>Classical</option><option>Swing</option><option>Jazz Ballad</option><option>Big Band</option><option>Jazz Waltz</option><option>Bebop</option><option>Cool Jazz</option><option>Dixieland</option><option>Jazz Fusion</option><option>Rhythm and Blues</option><option>Soul</option><option>Funk</option><option>Contemporary R&amp;B</option><option>Neo-Soul-related</option><option>Traditional Country</option><option>Country Rock</option><option>Country Ballad</option><option>Country Shuffle</option><option>Two-Step</option><option>Country Waltz</option><option>Bluegrass-related</option><option>Bossa Nova</option><option>Samba</option><option>Salsa</option><option>Mambo</option><option>Rumba</option><option>Cha-Cha</option><option>Bolero</option><option>House</option><option>Techno</option><option>Trance</option><option>Ambient Electronic</option><option>Downtempo</option><option>Breakbeat-related</option><option>Garage-related</option><option>Experimental Electronic</option><option>Eclectic New Indie</option><option>Mexican Reggaeton</option><option>Chugg / #chugg</option><option>Afrobeats</option><option>Afro-Latin / Afrobeats Fusion</option><option>Afro House</option><option>Trip-Hop</option><option>Contemporary Trip-Hop / Trip-Hop Revival</option><option>Regional Electronic Hybrids</option><option>Genre-Breaking / Borderless</option><option>Custom Hybrid</option><option>Custom Style</option><option>Controlled Custom Style Profile</option><option>DISCO</option><option>WALTZ</option><option>PIANIST</option><option>Spiritual</option></select></label>
+<div class="music-bottom-controls" aria-label="Music playback controls">
+  <div class="music-buttons"><button id="createMusic" class="primary">CREATE NEW MUSIC</button><button id="playMusic">▶ PLAY MUSIC</button></div>
+  <label class="music-volume">Volume <strong id="volText">60%</strong><input id="volume" class="full" type="range" min="0" max="100" value="60"></label>
+</div>
+<div class="row"><button id="stopMusic">■ STOP MUSIC</button><button id="recordMusic">● RECORD / SAVE MUSIC</button></div>
 <div id="engineStatus" class="status">AI COMPOSITION: READY FOR REQUEST</div>
-<div class="row"><button id="createMusic" class="primary">CREATE NEW MUSIC</button><button id="playMusic">▶ PLAY MUSIC</button><button id="stopMusic">■ STOP MUSIC</button><button id="recordMusic">● RECORD / SAVE MUSIC</button></div>
 <div id="musicStatus" class="status">MUSIC: ROCK • READY</div><div id="composeProgress" class="composeProgress" hidden><span class="composeSpinner" aria-hidden="true"></span><div><strong id="composeProgressTitle">COMPOSING…</strong><div id="composeProgressTime" class="small">Elapsed 0:00 • Estimated about 2:00 remaining</div></div></div>
-<div class="note">The Control Panel does not generate, synthesize, sample, arrange, or render music. CREATE NEW MUSIC sends the selected genre/style and tuning-reference request with the selected Portal 3 MUSIC or BOTH route through the pass-through Plug to the separate AI Composition — Sandbox composing section, which is the sole music and sound authority. PLAY, STOP, and SAVE WAV operate only on completed AI Composition audio returned to the panel.</div></section>
+<div class="note">The Control Panel does not generate, synthesize, sample, arrange, or render music. CREATE NEW MUSIC sends the selected genre/style and tuning-reference request with the selected Portal 3 MUSIC or BOTH route through the pass-through Plug to the separate AI Composition — Sandbox composing section, which is the sole music and sound authority. PLAY, STOP, and RECORD operate only on completed AI Composition audio returned to the panel.</div></section>
 
 <section class="card"><h2 id="outputPanel">OUTPUT</h2>
 <div class="note"><strong>AUDIO OUTPUT:</strong> Choose a browser/OS audio device when supported. Otherwise PLAY MUSIC follows this phone/computer's current system media output.</div>
@@ -137,10 +116,12 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
 <div id="outputStatus" class="status">OUTPUT: SYSTEM MEDIA OUTPUT</div>
 </section>
 
-<div class="row"><button id="printPanel" type="button">PRINT / SAVE PDF</button></div>
+<div class="row"><button id="installApp" class="primary" type="button">INSTALL APP</button><button id="downloadPanel" type="button">DOWNLOAD PANEL</button><button id="printPanel" type="button">PRINT / SAVE PDF</button></div><div id="installStatus" class="install-status" role="status"></div>
 <section class="card"><h2>LIVE SIGNAL PATH</h2><div id="livePath" class="path">Library → Rack: waiting<br>P1: OFF<br>P2: WAITING<br>P3: OFF</div></section>
 </div>
 
+
+</div>
 <script>
 const libraryData=[
 {id:'VLF-001',label:'1 Hz',category:'Very Low Frequency'},
@@ -259,7 +240,7 @@ function update(){
  $("rackStatus").textContent="Selected: Slot "+(selectedSlot+1)+(rack[selectedSlot]?" • "+rack[selectedSlot].label:" • EMPTY");
  $("p1Loaded").textContent=loaded?loaded.label:"NONE";$("p1Status").textContent="P1: "+(p1Enabled?"ENABLED • TUNING A="+p1TuningReferenceHz+" Hz":"OFF");
  $("p2Status").textContent=p2Applied?"P2: SETTINGS APPLIED":"P2: "+(p1Enabled?"READY":"WAITING FOR P1");
- $("p3Status").textContent="P3: "+route;
+ $("p3Status").textContent="P3: "+route;$("applyP3").textContent=route==="OFF"?"TURN PORTAL 3 ON":"TURN PORTAL 3 OFF";
  $("musicStatus").textContent=musicBusy?"MUSIC: "+musicStage:currentComposition?"MUSIC: "+currentComposition.genre+" • READY TO PLAY":"MUSIC: "+$("genre").value+" • SELECT CREATE NEW MUSIC";
  $("livePath").innerHTML=`Library → Rack: ${rack[selectedSlot]?.label||"waiting"}<br>P1: ${p1Enabled?(loaded?.label||"ENABLED")+" • A="+p1TuningReferenceHz+" Hz":"OFF"}<br>P2: ${p2Applied?"APPLIED":"WAITING"}<br>P3: ${route}`;
 }
@@ -321,7 +302,12 @@ $("stopSweep").onclick=()=>{stopAudio();$("sweepStatus").textContent="SWEEP: STO
 
 $("enableP1").onclick=()=>{if(!powered){$("p1Status").textContent="P1: TURN MASTER POWER ON FIRST";return}if(!loaded){$("p1Status").textContent="P1: LOAD A SOURCE FIRST";return}p1TuningReferenceHz=Number($("musicTuning").value);p1Enabled=true;p2Applied=false;route="OFF";$("route").value="OFF";update()};
 $("applyP2").onclick=()=>{if(!powered||!p1Enabled){$("p2Status").textContent="P2: WAITING FOR POWERED P1";return}p2Applied=true;update()};
-$("applyP3").onclick=()=>{if(!p2Applied){$("p3Status").textContent="P3: APPLY PORTAL 2 FIRST";return}route=$("route").value;if(route==="OFF"){cancelMusicCreation();stopAudio()}update()};
+$("applyP3").onclick=()=>{
+ if(!powered){$("p3Status").textContent="P3: TURN POWER ON FIRST";return;}
+ if(route!=="OFF"){$("route").value="OFF";}
+ else if($("route").value==="OFF"){$("route").value="MUSIC";}
+ applySelections();
+};
 $("playFreq").onclick=async()=>{if(!powered){$("freqStatus").textContent="FREQUENCY: TURN MASTER POWER ON";return}if(!loaded||!p1Enabled){$("freqStatus").textContent="FREQUENCY: LOAD AND ENABLE P1";return}if(!p2Applied){$("freqStatus").textContent="FREQUENCY: APPLY PORTAL 2";return}if(route==="OFF"){$("freqStatus").textContent="FREQUENCY: APPLY PORTAL 3 ROUTE";return}if(loaded.type==="sweep"){$("freqStatus").textContent="FREQUENCY: USE START SWEEP";return}const f=hzOf(loaded);const ok=await playTone(f);$("freqStatus").textContent=ok?"FREQUENCY: PLAYING • "+loaded.label+" • ROUTE "+route:"FREQUENCY: AUDIO FAILED"};
 $("stopFreq").onclick=()=>{stopAudio();$("freqStatus").textContent="FREQUENCY: STOPPED"};
 $("genre").onchange=()=>{
@@ -553,7 +539,7 @@ installButton.addEventListener('click',async()=>{
 document.getElementById('downloadPanel').addEventListener('click',async()=>{
  try{
  const content=location.protocol==='file:'?originalPanelHTML:await fetch(location.pathname,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Download failed');return r.text()});
- const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Phone-R8.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Phone-R9.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
  installStatus.textContent='Panel file downloaded. Music creation needs an internet connection.';
  }catch(e){installStatus.textContent='Download failed: '+e.message;}
 });
