@@ -63,6 +63,7 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
 @media print{html,body{position:static;height:auto}.wrap{height:auto;max-height:none}.scrollFrame{display:block;overflow:visible}#panelScroll{height:auto;overflow:visible}.scrollControls,.appActions{display:none!important}}
 /* ON/OFF alone stays fixed; every other control is in the touch scroll area. */
 .powerBar{display:block}.powerBar #power{width:100%;font-size:16px}
+.library{max-height:none;overflow:visible}
 #panelScroll{height:0;flex:1 1 0;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding-right:0;scrollbar-gutter:auto}
 @media print{#panelScroll{height:auto;overflow:visible}}
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
