@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="panel-revision" content="R1-2026-10-11-hosted-repair"><title>Control Panel — Audio & Music Playback</title>
+<meta name="panel-revision" content="R1-2026-10-11-phone-ready"><title>Control Panel — Audio & Music Playback</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#07111d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -27,6 +27,16 @@ button[hidden],.row[hidden]{display:none!important}.install-status{font-size:.82
 .grid{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:20px}
 .quicklink{color:#eee;text-decoration:none;border:1px solid #555;border-radius:9px;padding:9px 10px;background:#191919;font-weight:700;text-align:center;flex:1}
 @media(min-width:700px){body{background:#080808}.wrap{border-left:1px solid #333;border-right:1px solid #333}}
+
+/* Phone layout: ordinary document scrolling, including Android in-app browsers. */
+html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
+.wrap{height:auto;min-height:100vh;min-height:100dvh;overflow:visible;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
+.grid{display:flex;flex-direction:column;overflow:visible;flex:none;padding-top:12px}
+.grid>.card{flex:none;width:100%}
+button,select,input{font-size:16px}button,.quicklink{min-height:48px}
+.status,.note,.small{overflow-wrap:anywhere}
+.top{position:sticky;top:0;z-index:5;background:#111;padding:8px 0}
+#phoneStart{margin:8px 0}
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
 </head><body>
 <div class="wrap">
@@ -40,6 +50,10 @@ button[hidden],.row[hidden]{display:none!important}.install-status{font-size:.82
 <div class="top"><a class="quicklink" href="#musicPanel">CREATE / PLAY MUSIC</a><a class="quicklink" href="#outputPanel">VOLUME / OUTPUT</a></div>
 <div class="row"><button id="power" class="primary">MASTER POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button><span id="systemStatus" class="status">SYSTEM: OFF</span></div>
 
+<section class="card" id="phoneStart"><h2>PHONE — START HERE</h2>
+<div class="note">SET UP MUSIC turns power on, selects A = 440 Hz and the MUSIC route, and fills an empty selected source slot with the 440 Hz reference. It does not play a tone.</div>
+<div class="row"><button id="setupMusic" class="primary" type="button">SET UP MUSIC</button><a class="quicklink" href="#musicPanel">GO TO MUSIC</a></div>
+<div class="note">Then choose a genre, tap CREATE NEW MUSIC, wait for READY TO PLAY, and tap PLAY MUSIC.</div></section>
 <div class="grid">
 <section class="card"><h2>AUDIO BASELINE</h2><div class="note">Independent diagnostic only. It bypasses the portals.</div>
 <div class="row"><button id="test440" class="primary">▶ TEST 440 Hz</button><button id="stopAudio">■ STOP</button></div>
@@ -395,7 +409,7 @@ $("playMusic").onclick=async()=>{
  if(!url){$("musicStatus").textContent="MUSIC: "+(currentComposition.message||currentComposition.status||"WAITING FOR AI COMPOSITION - SANDBOX OUTPUT");return}
  stopAudio();const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
  const serial=playbackSerial;
- try{await routePlayerToSelectedOutput();if(serial!==playbackSerial)return;await p.play();if(serial!==playbackSerial){p.pause();return}$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
+ try{await routePlayerToSelectedOutput();if(serial!==playbackSerial)return;await p.play();if(serial!==playbackSerial){p.pause();return}$('audioStatus').textContent='AUDIO: PLAYING MUSIC';$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
 };
 $("stopMusic").onclick=()=>{cancelMusicCreation();stopAudio();$("musicStatus").textContent="MUSIC: STOPPED"};
 $('recordMusic').textContent='SAVE WAV';
@@ -434,6 +448,16 @@ renderLibrary();renderSlots();applySelections();
 </script>
 <script>
 let installPrompt=null;
+
+$('setupMusic').onclick=()=>{
+ cancelMusicCreation();stopAudio();
+ if(!powered)$('power').click();
+ if(!rack[selectedSlot])rack[selectedSlot]=libraryData.find(x=>x.id==='AUD-006');
+ loaded=rack[selectedSlot];$('musicTuning').value='440';$('route').value='MUSIC';
+ applySelections();renderSlots();
+ $('musicStatus').textContent='MUSIC: SET UP COMPLETE • CHOOSE GENRE / CREATE NEW MUSIC';
+ document.getElementById('musicPanel').scrollIntoView({block:'start'});
+};
 const installButton=document.getElementById('installApp');
 const installStatus=document.getElementById('installStatus');
 const standalone=()=>window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
