@@ -16,6 +16,7 @@ import zipfile
 from frequency_analysis import analyze_recording
 from recording_adapters import CsvFileAdapter, WavFileAdapter, decode_wav
 from science_plug import FileImportAdapter, SciencePlug
+from equipment_readiness import preparation_status
 
 APP_VERSION = "science-online-1.0.0"
 MAX_UPLOAD = 10 * 1024 * 1024
@@ -168,6 +169,11 @@ class Handler(BaseHTTPRequestHandler):
             self.send(200, json.dumps(dict(status="ok", app_version=APP_VERSION,
                 adapters=["native", "wav", "csv"], physical_hardware_connected=False,
                 server_retains_record=False)))
+        elif self.path == "/api/equipment-readiness":
+            try:
+                self.send(200, json.dumps(preparation_status(), allow_nan=False))
+            except (ValueError, TypeError, KeyError, AttributeError, OSError):
+                self.send(503, '{"error":"Equipment preparation could not be verified","physical_hardware_connected":false}')
         else:
             self.send(404, '{"error":"Not found"}')
 

@@ -75,6 +75,11 @@ class OnlineTests(unittest.TestCase):
         try:
             with urlopen(base + "/health") as response:
                 self.assertFalse(json.load(response)["physical_hardware_connected"])
+            with urlopen(base + "/api/equipment-readiness") as response:
+                readiness = json.load(response)
+                self.assertEqual(readiness["equipment_template_count"], 24)
+                self.assertEqual(readiness["live_driver_count"], 0)
+                self.assertFalse(readiness["physical_hardware_connected"])
             request, _ = request_data()
             http = Request(base + "/api/process", data=json.dumps(request).encode(),headers={"Content-Type":"application/json"})
             with urlopen(http) as response:
