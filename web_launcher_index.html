@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="panel-revision" content="R1-2026-10-11-phone-ready"><title>Control Panel — Audio & Music Playback</title>
+<meta name="panel-revision" content="R4-2026-10-11-fixed-power"><title>Control Panel — Audio & Music Playback</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#07111d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -20,41 +20,39 @@ button{font-weight:700;min-height:44px}.primary{background:#eee;color:#111}.dang
 *{box-sizing:border-box}
 html,body{height:100%;overflow:hidden}
 body{padding:0;max-width:none}
-.wrap{height:100dvh;max-width:560px;margin:auto;padding:12px;display:flex;flex-direction:column;overflow:hidden;background:#111}
-.top{flex:0 0 auto;display:flex;gap:8px}.wrap>h1,.wrap>.row,.wrap>.sub,.wrap>#tuningReference{flex-shrink:0}
+.wrap{height:100vh;height:100dvh;max-width:560px;margin:auto;padding:12px;display:flex;flex-direction:column;overflow:hidden;background:#111}
+.top{display:flex;gap:8px}.powerBar{flex:0 0 auto}.powerBar .status{margin-top:0}.wrap>h1,.wrap>.row,.wrap>.sub,.wrap>#tuningReference{flex-shrink:0}
 button[hidden],.row[hidden]{display:none!important}.install-status{font-size:.82rem;margin:4px 0 8px}.grid>.card{min-width:0}
 @media(max-height:700px){#tuningReference .note,#tuningStatus,.sub{display:none}#tuningReference{padding:8px}#tuningReference h2{margin:0}#tuningReference label{margin:4px 0}.wrap{padding:8px}h1{font-size:1.1rem;margin:3px 0}.status{padding:5px}}
 .grid{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:20px}
 .quicklink{color:#eee;text-decoration:none;border:1px solid #555;border-radius:9px;padding:9px 10px;background:#191919;font-weight:700;text-align:center;flex:1}
 @media(min-width:700px){body{background:#080808}.wrap{border-left:1px solid #333;border-right:1px solid #333}}
-
-/* Phone layout: ordinary document scrolling, including Android in-app browsers. */
-html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}
-.wrap{height:auto;min-height:100vh;min-height:100dvh;overflow:visible;padding-bottom:calc(20px + env(safe-area-inset-bottom))}
-.grid{display:flex;flex-direction:column;overflow:visible;flex:none;padding-top:12px}
-.grid>.card{flex:none;width:100%}
-button,select,input{font-size:16px}button,.quicklink{min-height:48px}
-.status,.note,.small{overflow-wrap:anywhere}
-.top{position:sticky;top:0;z-index:5;background:#111;padding:8px 0}
-#phoneStart{margin:8px 0}
+@media print{
+:root{color-scheme:light;background:white;color:black}
+html,body{height:auto;overflow:visible;background:white;color:black}
+.wrap{height:auto;max-width:none;overflow:visible;display:block;background:white;border:0}
+.grid{display:block;overflow:visible;max-height:none;padding:0}
+.card{background:white;border:1px solid #888;margin:0 0 12px;break-inside:avoid}
+.library{max-height:none;overflow:visible}.status,.composeProgress{background:white;color:black}
+button,select,input,.quicklink{background:white;color:black;border-color:#888}
+#installApp,#downloadPanel,#printPanel,#installStatus,.top{display:none!important}
+.sub,#tuningStatus,#tuningReference .note{display:block!important}
+h1{font-size:18pt}.note,.small,.sub{opacity:1}
+}
+@media(max-width:360px){.wrap{padding:6px}.top{flex-wrap:wrap}button,select,input{max-width:100%}.slots{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
 </head><body>
 <div class="wrap">
+<div class="row powerBar"><button id="power" class="primary">MASTER POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button><span id="systemStatus" class="status">SYSTEM: OFF</span></div>
+<div class="grid" id="panelScroll">
 <h1>CONTROL PANEL</h1>
-<div class="row"><button id="installApp" class="primary" type="button">INSTALL APP</button><button id="downloadPanel" type="button">DOWNLOAD PANEL</button></div><div id="installStatus" class="install-status" role="status"></div>
-<section class="card" id="tuningReference" style="margin:8px 0 12px"><h2>MUSICAL TUNING REFERENCE</h2>
-<div class="note">440 Hz uses the connected hosted Composer. Native 432 Hz rendering is available in the separate local repair; this hosted connection has not confirmed 432 Hz support.</div>
-<label>Tuning Reference<select id="musicTuning" class="full"><option value="440" selected>A = 440 Hz</option><option value="432">A = 432 Hz</option></select></label>
-<div id="tuningStatus" class="status">MUSICAL TUNING: A = 440 Hz</div></section>
+
+
+
 <div class="sub">Frequency Library → Slots 1–12 → Portal 1 → Portal 2 → Portal 3 • media-audio engine</div>
 <div class="top"><a class="quicklink" href="#musicPanel">CREATE / PLAY MUSIC</a><a class="quicklink" href="#outputPanel">VOLUME / OUTPUT</a></div>
-<div class="row"><button id="power" class="primary">MASTER POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button><span id="systemStatus" class="status">SYSTEM: OFF</span></div>
 
-<section class="card" id="phoneStart"><h2>PHONE — START HERE</h2>
-<div class="note">SET UP MUSIC turns power on, selects A = 440 Hz and the MUSIC route, and fills an empty selected source slot with the 440 Hz reference. It does not play a tone.</div>
-<div class="row"><button id="setupMusic" class="primary" type="button">SET UP MUSIC</button><a class="quicklink" href="#musicPanel">GO TO MUSIC</a></div>
-<div class="note">Then choose a genre, tap CREATE NEW MUSIC, wait for READY TO PLAY, and tap PLAY MUSIC.</div></section>
-<div class="grid">
+
 <section class="card"><h2>AUDIO BASELINE</h2><div class="note">Independent diagnostic only. It bypasses the portals.</div>
 <div class="row"><button id="test440" class="primary">▶ TEST 440 Hz</button><button id="stopAudio">■ STOP</button></div>
 <label>Output Level <strong id="volText">60%</strong><input id="volume" class="full" type="range" min="0" max="100" value="60"></label>
@@ -97,6 +95,7 @@ button,select,input{font-size:16px}button,.quicklink{min-height:48px}
 <div id="freqStatus" class="status">FREQUENCY: STOPPED</div></section>
 
 <section class="card"><h2 id="musicPanel">MUSIC / COMPOSITION</h2>
+<label>Musical Tuning<select id="musicTuning" class="full"><option value="440" selected>A = 440 Hz</option><option value="432">A = 432 Hz</option></select></label><div id="tuningStatus" class="status">MUSICAL TUNING: A = 440 Hz</div>
 <label>Genre / Style<select id="genre" class="full"><option>ROCK</option><option>New Age</option><option>Classical</option><option>Swing</option><option>Jazz Ballad</option><option>Big Band</option><option>Jazz Waltz</option><option>Bebop</option><option>Cool Jazz</option><option>Dixieland</option><option>Jazz Fusion</option><option>Rhythm and Blues</option><option>Soul</option><option>Funk</option><option>Contemporary R&amp;B</option><option>Neo-Soul-related</option><option>Traditional Country</option><option>Country Rock</option><option>Country Ballad</option><option>Country Shuffle</option><option>Two-Step</option><option>Country Waltz</option><option>Bluegrass-related</option><option>Bossa Nova</option><option>Samba</option><option>Salsa</option><option>Mambo</option><option>Rumba</option><option>Cha-Cha</option><option>Bolero</option><option>House</option><option>Techno</option><option>Trance</option><option>Ambient Electronic</option><option>Downtempo</option><option>Breakbeat-related</option><option>Garage-related</option><option>Experimental Electronic</option><option>Eclectic New Indie</option><option>Mexican Reggaeton</option><option>Chugg / #chugg</option><option>Afrobeats</option><option>Afro-Latin / Afrobeats Fusion</option><option>Afro House</option><option>Trip-Hop</option><option>Contemporary Trip-Hop / Trip-Hop Revival</option><option>Regional Electronic Hybrids</option><option>Genre-Breaking / Borderless</option><option>Custom Hybrid</option><option>Custom Style</option><option>Controlled Custom Style Profile</option><option>DISCO</option><option>WALTZ</option><option>PIANIST</option><option>Spiritual</option></select></label>
 <div id="engineStatus" class="status">AI COMPOSITION: READY FOR REQUEST</div>
 <div class="row"><button id="createMusic" class="primary">CREATE NEW MUSIC</button><button id="playMusic">▶ PLAY MUSIC</button><button id="stopMusic">■ STOP MUSIC</button><button id="recordMusic">● RECORD</button></div>
@@ -110,6 +109,7 @@ button,select,input{font-size:16px}button,.quicklink{min-height:48px}
 <div id="outputStatus" class="status">OUTPUT: SYSTEM MEDIA OUTPUT</div>
 </section>
 
+<section class="card"><h2>PANEL OPTIONS</h2><div class="row"><button id="installApp" class="primary" type="button">INSTALL APP</button><button id="downloadPanel" type="button">DOWNLOAD PANEL</button><button id="printPanel" type="button">PRINT / SAVE PDF</button></div><div id="installStatus" class="install-status" role="status"></div></section>
 <section class="card"><h2>LIVE SIGNAL PATH</h2><div id="livePath" class="path">Library → Rack: waiting<br>P1: OFF<br>P2: WAITING<br>P3: OFF</div></section>
 </div>
 
@@ -149,7 +149,7 @@ const libraryData=[
 {id:'HI-011',label:'20,000 Hz',category:'High Audible'}
 ];
 const $=id=>document.getElementById(id);
-let playbackSerial=0;
+let playbackSerial=0,activePlayback=null;
 let powered=false,selectedSlot=0,loaded=null,p1Enabled=false,p1TuningReferenceHz=null,p2Applied=false,route="OFF",currentURL=null,currentComposition=null,currentMusicURL=null,baselineCtx=null,baselineOsc=null,baselineGain=null,activeRecorder=null,selectedAudioDevice=null,outputApplied=true;
 
 const rack=Array(12).fill(null);
@@ -172,13 +172,13 @@ function wavSweep(a=20,b=20000,seconds=30,amp=.40,sr=44100){
  for(let i=0;i<n;i++){const t=i/(n-1),f=a+(b-a)*t;phase+=2*Math.PI*f/sr;const fade=Math.min(1,i/(sr*.02),(n-i)/(sr*.03));v.setInt16(44+i*2,Math.sin(phase)*amp*fade*32767,true)}
  return new Blob([buf],{type:"audio/wav"})
 }
-async function playBlob(blob,label){
- stopAudio();currentURL=URL.createObjectURL(blob);const p=$("player");p.src=currentURL;p.volume=Number($("volume").value)/100;
+async function playBlob(blob,label,kind="frequency"){
+ stopAudio();activePlayback=kind;currentURL=URL.createObjectURL(blob);const p=$("player");p.src=currentURL;p.volume=Number($("volume").value)/100;
  const serial=playbackSerial;
  try{await p.play();if(serial!==playbackSerial){p.pause();return false}$("audioStatus").textContent="AUDIO: PLAYING • "+label;return true}catch(e){$("audioStatus").textContent="AUDIO ERROR: "+(e.message||e);return false}
 }
 
-function stopAudio(){playbackSerial++;$("audioStatus").textContent="AUDIO: STOPPED";$("freqStatus").textContent="FREQUENCY: STOPPED";$("sweepStatus").textContent="SWEEP: STOPPED";
+function stopAudio(){playbackSerial++;activePlayback=null;$("audioStatus").textContent="AUDIO: STOPPED";$("freqStatus").textContent="FREQUENCY: STOPPED";$("sweepStatus").textContent="SWEEP: STOPPED";
 if(activeRecorder){const rec=activeRecorder;activeRecorder=null;if(rec.state!=="inactive")rec.stop()}const p=$("player");p.pause();p.currentTime=0;if(currentURL){URL.revokeObjectURL(currentURL);currentURL=null}if(baselineOsc){try{baselineOsc.stop()}catch(e){}baselineOsc=null}if(baselineCtx){try{baselineCtx.close()}catch(e){}baselineCtx=null;baselineGain=null}}
 async function playTone(freq){return playBlob(wavTone(freq),freq+" Hz")}
 async function routePlayerToSelectedOutput(){
@@ -240,8 +240,11 @@ $("test440").onclick=async()=>{
   stopAudio();
   const AC=window.AudioContext||window.webkitAudioContext;
   if(!AC)throw new Error("440 Hz diagnostic audio is not supported by this browser");
+  const serial=playbackSerial;
   baselineCtx=new AC();
-  if(baselineCtx.state==="suspended")await baselineCtx.resume();
+  const ctx=baselineCtx;if(ctx.state==="suspended")await ctx.resume();
+  if(serial!==playbackSerial||baselineCtx!==ctx)return;
+  activePlayback="baseline";
   baselineOsc=baselineCtx.createOscillator();baselineGain=baselineCtx.createGain();
   baselineOsc.type="sine";baselineOsc.frequency.setValueAtTime(440,baselineCtx.currentTime);
   baselineGain.gain.setValueAtTime(Math.max(0,Math.min(1,Number($("volume").value)/100))*0.35,baselineCtx.currentTime);
@@ -256,9 +259,36 @@ $("search").oninput=renderLibrary;$("clearSlot").onclick=()=>{rack[selectedSlot]
 $("power").onclick=()=>{powered=!powered;$("power").textContent="MASTER POWER: "+(powered?"ON":"OFF");$("systemStatus").textContent="SYSTEM: "+(powered?"ON":"OFF");if(!powered){cancelMusicCreation();stopAudio()}update()};
 $("estop").onclick=()=>{cancelMusicCreation();powered=false;p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";stopAudio();$("power").textContent="MASTER POWER: OFF";$("systemStatus").textContent="SYSTEM: EMERGENCY STOP";update()};
 $("loadP1").onclick=()=>{if(!rack[selectedSlot]){$("p1Status").textContent="P1: SELECT/ASSIGN A SLOT FIRST";return}loaded=rack[selectedSlot];p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";update()};
-$("loadSweep").onclick=()=>{const a=Number($("sweepStart").value),b=Number($("sweepEnd").value),d=Number($("sweepDuration").value);if(![a,b,d].every(Number.isFinite)||!(a>0&&b>0&&d>0&&a<=20000&&b<=20000&&d<=300)){$("sweepStatus").textContent="SWEEP: CHECK START / END / DURATION";return}loaded={id:"SWEEP",label:"SWEEP "+a+"–"+b+" Hz",category:"Sweep Source",type:"sweep",sweep:{a,b,d}};p1Enabled=false;p1TuningReferenceHz=null;p2Applied=false;route="OFF";$("route").value="OFF";$("sweepStatus").textContent="SWEEP: LOADED INTO P1 • "+a+" → "+b+" Hz";update()};
-$("startSweep").onclick=async()=>{if(!loaded||loaded.type!=="sweep"){$("sweepStatus").textContent="SWEEP: LOAD SWEEP INTO P1 FIRST";return}if(!powered||!p1Enabled||!p2Applied||route==="OFF"){$("sweepStatus").textContent="SWEEP: COMPLETE P1 → P2 → P3 FIRST";return}const q=loaded.sweep;const ok=await playBlob(wavSweep(q.a,q.b,q.d),"SWEEP "+q.a+" → "+q.b+" Hz");$("sweepStatus").textContent=ok?"SWEEP: PLAYING • "+q.a+" → "+q.b+" Hz • "+q.d+" sec":"SWEEP: AUDIO FAILED"};
-$("pauseSweep").onclick=()=>{const p=$("player");if(p.paused){if(!powered||!p1Enabled||!p2Applied||route==="OFF"){$("sweepStatus").textContent="SWEEP: COMPLETE POWER / PORTALS FIRST";return}p.play().catch(e=>{$("sweepStatus").textContent="SWEEP ERROR: "+e.message});$("sweepStatus").textContent="SWEEP: RESUMED"}else{p.pause();$("sweepStatus").textContent="SWEEP: PAUSED"}};
+function loadSweepSource(){
+ const a=Number($("sweepStart").value),b=Number($("sweepEnd").value),d=Number($("sweepDuration").value);
+ if(![a,b,d].every(Number.isFinite)||!(a>0&&b>0&&d>0&&a<=20000&&b<=20000&&d<=300)){$("sweepStatus").textContent="SWEEP: CHECK START / END / DURATION";return false}
+ if(activePlayback==='sweep')stopAudio();
+ loaded={id:"SWEEP",label:"SWEEP "+a+"–"+b+" Hz",category:"Sweep Source",type:"sweep",sweep:{a,b,d}};
+ if($("route").value==='OFF')$("route").value='SCIENCE';
+ applySelections();
+ $("sweepStatus").textContent=powered?"SWEEP: LOADED AND ACTIVE • PRESS START SWEEP":"SWEEP: LOADED • TURN MASTER POWER ON, THEN START SWEEP";
+ return true;
+}
+$("loadSweep").onclick=loadSweepSource;
+$("startSweep").onclick=async()=>{
+ if(!powered){$("sweepStatus").textContent="SWEEP: TURN MASTER POWER ON, THEN PRESS START SWEEP";return}
+ if(!loaded||loaded.type!=="sweep"){if(!loadSweepSource())return}
+ applySelections();
+ if(!p1Enabled||!p2Applied||route==='OFF'){$("sweepStatus").textContent="SWEEP: SELECT SCIENCE, MUSIC OR BOTH IN PORTAL 3";return}
+ const q=loaded.sweep;
+ try{const ok=await playBlob(wavSweep(q.a,q.b,q.d),"SWEEP "+q.a+" → "+q.b+" Hz","sweep");
+ $("sweepStatus").textContent=ok?"SWEEP: PLAYING • "+q.a+" → "+q.b+" Hz • "+q.d+" sec":"SWEEP: AUDIO FAILED"}
+ catch(e){$("sweepStatus").textContent="SWEEP ERROR: "+(e.message||e)}
+};
+$("pauseSweep").onclick=async()=>{
+ const p=$("player");
+ if(activePlayback!=="sweep"){$("sweepStatus").textContent="SWEEP: START A SWEEP FIRST";return}
+ if(!p.paused){p.pause();$("sweepStatus").textContent="SWEEP: PAUSED";return}
+ if(!powered||!p1Enabled||!p2Applied||route==="OFF"){$("sweepStatus").textContent="SWEEP: COMPLETE POWER / PORTALS FIRST";return}
+ const serial=playbackSerial;
+ try{await p.play();if(serial!==playbackSerial){p.pause();return}$("sweepStatus").textContent="SWEEP: RESUMED"}
+ catch(e){$("sweepStatus").textContent="SWEEP ERROR: "+e.message}
+};
 $("stopSweep").onclick=()=>{stopAudio();$("sweepStatus").textContent="SWEEP: STOPPED • READY"};
 
 $("enableP1").onclick=()=>{if(!powered){$("p1Status").textContent="P1: TURN MASTER POWER ON FIRST";return}if(!loaded){$("p1Status").textContent="P1: LOAD A SOURCE FIRST";return}p1TuningReferenceHz=Number($("musicTuning").value);p1Enabled=true;p2Applied=false;route="OFF";$("route").value="OFF";update()};
@@ -402,14 +432,14 @@ $("applyOutput").onclick=applySelectedOutput;
 })();
 $("createMusic").onclick=()=>sendCompositionRequest();
 $("playMusic").onclick=async()=>{
- if(!powered||!p1Enabled||!p2Applied||!["MUSIC","BOTH"].includes(route)){$("musicStatus").textContent="MUSIC: COMPLETE POWER / MUSIC ROUTE FIRST";return}
+ if(!powered||!["MUSIC","BOTH"].includes(route)){$("musicStatus").textContent="MUSIC: COMPLETE POWER / MUSIC ROUTE FIRST";return}
  if(musicBusy){$("musicStatus").textContent="MUSIC: WAIT FOR CREATION TO COMPLETE";return}
  if(!currentComposition){$("musicStatus").textContent="MUSIC: CREATE A COMPOSITION FIRST";return}
  const url=currentMusicURL||currentComposition.audio_url||currentComposition.playback_url||currentComposition.output_url;
  if(!url){$("musicStatus").textContent="MUSIC: "+(currentComposition.message||currentComposition.status||"WAITING FOR AI COMPOSITION - SANDBOX OUTPUT");return}
- stopAudio();const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
+ stopAudio();activePlayback="music";const p=$("player");p.src=url;p.volume=Number($("volume").value)/100;
  const serial=playbackSerial;
- try{await routePlayerToSelectedOutput();if(serial!==playbackSerial)return;await p.play();if(serial!==playbackSerial){p.pause();return}$('audioStatus').textContent='AUDIO: PLAYING MUSIC';$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
+ try{await routePlayerToSelectedOutput();if(serial!==playbackSerial)return;await p.play();if(serial!==playbackSerial){p.pause();return}$("audioStatus").textContent="AUDIO: PLAYING • MUSIC";$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
 };
 $("stopMusic").onclick=()=>{cancelMusicCreation();stopAudio();$("musicStatus").textContent="MUSIC: STOPPED"};
 $('recordMusic').textContent='SAVE WAV';
@@ -418,14 +448,14 @@ $('recordMusic').onclick=()=>{
  if(!currentComposition?.audio_blob){$('musicStatus').textContent='MUSIC: CREATE A VERIFIED COMPOSITION FIRST';return}
  const a=document.createElement('a');a.href=currentMusicURL;a.download=String(currentComposition.genre).replace(/[^a-z0-9_-]+/gi,'_')+'_'+currentComposition.audio_sha256.slice(0,12)+'.wav';document.body.appendChild(a);a.click();a.remove();$('musicStatus').textContent='MUSIC: VERIFIED WAV DOWNLOAD REQUESTED';
 };
-$('player').addEventListener('ended',()=>{$('audioStatus').textContent='AUDIO: FINISHED';$('freqStatus').textContent='FREQUENCY: FINISHED';$('sweepStatus').textContent='SWEEP: FINISHED';if(currentComposition)$('musicStatus').textContent='MUSIC: FINISHED • '+currentComposition.genre;});
+$('player').addEventListener('ended',()=>{const finished=activePlayback;activePlayback=null;$('audioStatus').textContent='AUDIO: FINISHED';$('freqStatus').textContent='FREQUENCY: FINISHED';$('sweepStatus').textContent='SWEEP: FINISHED';if(finished==='music'&&currentComposition)$('musicStatus').textContent='MUSIC: FINISHED • '+currentComposition.genre;});
 
 // A selection configures the route; only explicit playback buttons start audio.
 const settingsKey='ai-composer-external-panel-settings';
 const settingIds=['musicTuning','genre','sigDiag','physDiag','medDiag','route','volume','sweepStart','sweepEnd','sweepDuration'];
 function saveSelections(){try{localStorage.setItem(settingsKey,JSON.stringify({values:Object.fromEntries(settingIds.map(id=>[id,$(id).value])),rack:rack.map(x=>x?.id||null),selectedSlot}));}catch(e){}}
 function applySelections(){
- if(loaded?.type!=='sweep')loaded=rack[selectedSlot]||null;p1Enabled=powered&&!!loaded;p1TuningReferenceHz=Number($('musicTuning').value);p2Applied=p1Enabled;route=$('route').value;if(!powered||route==='OFF'){cancelMusicCreation();stopAudio()}
+ if(loaded?.type!=='sweep')loaded=rack[selectedSlot]||null;p1Enabled=powered&&!!loaded;p1TuningReferenceHz=Number($('musicTuning').value);p2Applied=p1Enabled;route=$('route').value;if(!powered||route==='OFF'){cancelMusicCreation();stopAudio()}else if(!['MUSIC','BOTH'].includes(route)){cancelMusicCreation();if(activePlayback==='music'){stopAudio();$('musicStatus').textContent='MUSIC: STOPPED • MUSIC ROUTE CLOSED'}}
  $('tuningStatus').textContent='MUSICAL TUNING: A = '+$('musicTuning').value+' Hz';
  update();saveSelections();
 }
@@ -442,22 +472,13 @@ $('slots').addEventListener('click',e=>{if(e.target.closest('button')){loaded=ra
 $('clearSlot').addEventListener('click',()=>{loaded=null;applySelections();});
 $('power').addEventListener('click',applySelections);
 $('estop').addEventListener('click',saveSelections);
-$('loadSweep').addEventListener('click',()=>{if(loaded?.type==='sweep'){p1Enabled=powered;p1TuningReferenceHz=Number($('musicTuning').value);p2Applied=p1Enabled;route=$('route').value==='OFF'?'SCIENCE':$('route').value;$('route').value=route;update();}});
+
 $('volume').dispatchEvent(new Event('input'));
 renderLibrary();renderSlots();applySelections();
 </script>
 <script>
+const originalPanelHTML='<!doctype html>\n'+document.documentElement.outerHTML;
 let installPrompt=null;
-
-$('setupMusic').onclick=()=>{
- cancelMusicCreation();stopAudio();
- if(!powered)$('power').click();
- if(!rack[selectedSlot])rack[selectedSlot]=libraryData.find(x=>x.id==='AUD-006');
- loaded=rack[selectedSlot];$('musicTuning').value='440';$('route').value='MUSIC';
- applySelections();renderSlots();
- $('musicStatus').textContent='MUSIC: SET UP COMPLETE • CHOOSE GENRE / CREATE NEW MUSIC';
- document.getElementById('musicPanel').scrollIntoView({block:'start'});
-};
 const installButton=document.getElementById('installApp');
 const installStatus=document.getElementById('installStatus');
 const standalone=()=>window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
@@ -473,11 +494,12 @@ installButton.addEventListener('click',async()=>{
 });
 document.getElementById('downloadPanel').addEventListener('click',async()=>{
  try{
- const content=location.protocol==='file:'?document.documentElement.outerHTML:await fetch(location.pathname,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Download failed');return r.text()});
- const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Sandbox.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ const content=location.protocol==='file:'?originalPanelHTML:await fetch(location.pathname,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Download failed');return r.text()});
+ const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Repaired-R4.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
  installStatus.textContent='Panel file downloaded. Music creation needs an internet connection.';
  }catch(e){installStatus.textContent='Download failed: '+e.message;}
 });
+document.getElementById('printPanel').addEventListener('click',()=>window.print());
 if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
  window.addEventListener('load',()=>navigator.serviceWorker.register('/service-worker.js').catch(()=>{installStatus.textContent='Installation is unavailable here. Open the online panel in Chrome.';}));
 }
