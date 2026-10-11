@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="panel-revision" content="R7-2026-10-11-finger-scroll"><title>Control Panel — Audio & Music Playback</title>
+<meta name="panel-revision" content="R8-2026-10-11-153700-CDT-play-record"><title>Control Panel — Audio & Music Playback</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#07111d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -126,7 +126,7 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
 <label>Musical Tuning<select id="musicTuning" class="full"><option value="440" selected>A = 440 Hz</option><option value="432">A = 432 Hz</option></select></label><div id="tuningStatus" class="status">MUSICAL TUNING: A = 440 Hz</div>
 <label>Genre / Style<select id="genre" class="full"><option>ROCK</option><option>New Age</option><option>Classical</option><option>Swing</option><option>Jazz Ballad</option><option>Big Band</option><option>Jazz Waltz</option><option>Bebop</option><option>Cool Jazz</option><option>Dixieland</option><option>Jazz Fusion</option><option>Rhythm and Blues</option><option>Soul</option><option>Funk</option><option>Contemporary R&amp;B</option><option>Neo-Soul-related</option><option>Traditional Country</option><option>Country Rock</option><option>Country Ballad</option><option>Country Shuffle</option><option>Two-Step</option><option>Country Waltz</option><option>Bluegrass-related</option><option>Bossa Nova</option><option>Samba</option><option>Salsa</option><option>Mambo</option><option>Rumba</option><option>Cha-Cha</option><option>Bolero</option><option>House</option><option>Techno</option><option>Trance</option><option>Ambient Electronic</option><option>Downtempo</option><option>Breakbeat-related</option><option>Garage-related</option><option>Experimental Electronic</option><option>Eclectic New Indie</option><option>Mexican Reggaeton</option><option>Chugg / #chugg</option><option>Afrobeats</option><option>Afro-Latin / Afrobeats Fusion</option><option>Afro House</option><option>Trip-Hop</option><option>Contemporary Trip-Hop / Trip-Hop Revival</option><option>Regional Electronic Hybrids</option><option>Genre-Breaking / Borderless</option><option>Custom Hybrid</option><option>Custom Style</option><option>Controlled Custom Style Profile</option><option>DISCO</option><option>WALTZ</option><option>PIANIST</option><option>Spiritual</option></select></label>
 <div id="engineStatus" class="status">AI COMPOSITION: READY FOR REQUEST</div>
-<div class="row"><button id="createMusic" class="primary">CREATE NEW MUSIC</button><button id="playMusic">▶ PLAY MUSIC</button><button id="stopMusic">■ STOP MUSIC</button><button id="recordMusic">● RECORD</button></div>
+<div class="row"><button id="createMusic" class="primary">CREATE NEW MUSIC</button><button id="playMusic">▶ PLAY MUSIC</button><button id="stopMusic">■ STOP MUSIC</button><button id="recordMusic">● RECORD / SAVE MUSIC</button></div>
 <div id="musicStatus" class="status">MUSIC: ROCK • READY</div><div id="composeProgress" class="composeProgress" hidden><span class="composeSpinner" aria-hidden="true"></span><div><strong id="composeProgressTitle">COMPOSING…</strong><div id="composeProgressTime" class="small">Elapsed 0:00 • Estimated about 2:00 remaining</div></div></div>
 <div class="note">The Control Panel does not generate, synthesize, sample, arrange, or render music. CREATE NEW MUSIC sends the selected genre/style and tuning-reference request with the selected Portal 3 MUSIC or BOTH route through the pass-through Plug to the separate AI Composition — Sandbox composing section, which is the sole music and sound authority. PLAY, STOP, and SAVE WAV operate only on completed AI Composition audio returned to the panel.</div></section>
 
@@ -362,6 +362,14 @@ function compositionAddress(){
 }
 function compositionRequest(){return {interface_version:'COMPOSER_INTERFACE_V1',request_id:'cp-'+Date.now()+'-'+(++controlPanelPlugSerial),source:'Control Panel',music_engine:'AI_COMPOSITION',destination:'AI Composition - Sandbox',entry_path:'/plug',command:'compose',execute:'AICompositionEngine.run',target:'INTERNAL',mode:'normal',genre:$('genre').value,portal3_route:route,tuning_reference_hz:Number($('musicTuning').value),requested_at:new Date().toISOString()}}
 function replyReason(reply){const detail=reply?.ai_composition||reply;return detail?.reason||detail?.audio_render?.reason||detail?.error||reply?.error||detail?.status||'Audio output is not ready';}
+function waitForComposer(signal){
+ return new Promise((resolve,reject)=>{
+  if(signal.aborted){reject(new DOMException('Request cancelled','AbortError'));return;}
+  const aborted=()=>{clearTimeout(timer);reject(new DOMException('Request cancelled','AbortError'));};
+  const timer=setTimeout(()=>{signal.removeEventListener('abort',aborted);resolve();},5000);
+  signal.addEventListener('abort',aborted,{once:true});
+ });
+}
 async function sendCompositionRequest(){
  if(!powered){$('musicStatus').textContent='MUSIC: TURN MASTER POWER ON';return;}
  if(!['MUSIC','BOTH'].includes(route)){$('musicStatus').textContent='MUSIC: SELECT MUSIC OR BOTH IN PORTAL 3 AND APPLY ROUTE';return;}
@@ -370,8 +378,7 @@ async function sendCompositionRequest(){
  const serial=++musicRequestSerial,request=compositionRequest();
  const controller=new AbortController();musicAbort=controller;let timedOut=false;
  musicBusy=true;$('createMusic').disabled=true;musicStage='CONNECTING • '+request.genre;startComposeProgress('CONNECTING TO COMPOSER…');
- stopAudio();currentComposition=null;
- if(currentMusicURL?.startsWith('blob:'))URL.revokeObjectURL(currentMusicURL);currentMusicURL=null;
+ stopAudio(); // Keep the last completed track until a new verified WAV replaces it.
  $('engineStatus').textContent='AI COMPOSITION: CHECKING CONNECTION';
  $('musicStatus').textContent='MUSIC: '+musicStage;
  musicTimer=setTimeout(()=>{timedOut=true;controller.abort()},405000);
@@ -384,7 +391,25 @@ async function sendCompositionRequest(){
   musicStage='COMPOSING • '+request.genre;$('composeProgressTitle').textContent='COMPOSING…';
   $('engineStatus').textContent='AI COMPOSITION: CONNECTED • COMPOSING';
   $('musicStatus').textContent='MUSIC: '+musicStage;
-  const response=await fetch(new URL('plug',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
+  let response;
+  for(;;){
+   response=await fetch(new URL('plug',base).href,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});
+   if(serial!==musicRequestSerial)return request;
+   if(response.status!==503)break;
+   let busyReply;try{busyReply=await response.clone().json()}catch(e){break;}
+   const busyDetail=busyReply?.ai_composition||busyReply;
+   if(busyDetail?.status!=='COMPOSER_BUSY'&&!/Another composition is rendering/i.test(replyReason(busyReply)))break;
+   musicStage='WAITING FOR COMPOSER • '+request.genre;
+   $('composeProgressTitle').textContent='WAITING FOR COMPOSER…';
+   $('engineStatus').textContent='AI COMPOSITION: BUSY • RETRYING AUTOMATICALLY';
+   $('musicStatus').textContent='MUSIC: '+musicStage;
+   await waitForComposer(controller.signal);
+   if(serial!==musicRequestSerial)return request;
+   musicStage='COMPOSING • '+request.genre;
+   $('composeProgressTitle').textContent='COMPOSING…';
+   $('engineStatus').textContent='AI COMPOSITION: CONNECTED • COMPOSING';
+   $('musicStatus').textContent='MUSIC: '+musicStage;
+  }
   if(serial!==musicRequestSerial)return request;
   const type=(response.headers.get('content-type')||'').toLowerCase();
   if(type.includes('audio/')){
@@ -470,7 +495,7 @@ $("playMusic").onclick=async()=>{
  try{await routePlayerToSelectedOutput();if(serial!==playbackSerial)return;await p.play();if(serial!==playbackSerial){p.pause();return}$("audioStatus").textContent="AUDIO: PLAYING • MUSIC";$("musicStatus").textContent="MUSIC: PLAYING • "+(currentComposition.genre||$("genre").value)}catch(e){$("musicStatus").textContent="MUSIC PLAYBACK ERROR: "+(e.message||e)}
 };
 $("stopMusic").onclick=()=>{cancelMusicCreation();stopAudio();$("musicStatus").textContent="MUSIC: STOPPED"};
-$('recordMusic').textContent='SAVE WAV';
+$('recordMusic').textContent='● RECORD / SAVE MUSIC';
 $('recordMusic').onclick=()=>{
  if(!powered||!['MUSIC','BOTH'].includes(route)){$('musicStatus').textContent='MUSIC: TURN POWER ON / SELECT MUSIC ROUTE';return}
  if(!currentComposition?.audio_blob){$('musicStatus').textContent='MUSIC: CREATE A VERIFIED COMPOSITION FIRST';return}
@@ -528,7 +553,7 @@ installButton.addEventListener('click',async()=>{
 document.getElementById('downloadPanel').addEventListener('click',async()=>{
  try{
  const content=location.protocol==='file:'?originalPanelHTML:await fetch(location.pathname,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Download failed');return r.text()});
- const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Phone-R7.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Phone-R8.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
  installStatus.textContent='Panel file downloaded. Music creation needs an internet connection.';
  }catch(e){installStatus.textContent='Download failed: '+e.message;}
 });
