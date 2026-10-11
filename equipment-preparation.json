@@ -1,0 +1,1769 @@
+{
+  "identity": "Sound, Vibration, Pattern & Consciousness \u2014 Science-Sandbox Equipment Preparation",
+  "parent": "Science-Sandbox",
+  "scope": "Software preparation only; no external equipment procurement or activation",
+  "saved_at": "2026-10-11T16:31:15-05:00",
+  "state": "PREPARED / PHYSICAL INTEGRATION PENDING",
+  "implementation": "Planning manifest and templates; not a live driver registry and not automatically loaded by the online server",
+  "related_files": [
+    "README.md",
+    "metadata-template.json",
+    "requirements-template.json",
+    "science_plug.py",
+    "recording_adapters.py",
+    "frequency_analysis.py"
+  ],
+  "protected_boundaries": [
+    "Master-SANDBOX and existing HARD COPY checkpoints",
+    "Composer and control panel",
+    "Existing portal implementations"
+  ],
+  "available_import_routes": [
+    {
+      "format": "native",
+      "adapter_id": "science-native-file-import",
+      "operation": "preserve original bytes; no decoding"
+    },
+    {
+      "format": "wav",
+      "adapter_id": "science-pcm-wav-import",
+      "operation": "decode integer PCM WAV and diagnostic analysis"
+    },
+    {
+      "format": "csv",
+      "adapter_id": "science-uniform-csv-import",
+      "operation": "decode only the defined uniform sample_index/channel format and diagnostic analysis"
+    }
+  ],
+  "adapter_contract": {
+    "interface": "science_plug.Adapter",
+    "required_attributes": [
+      "adapter_id",
+      "version"
+    ],
+    "capture_return": [
+      "original native bytes or explicit absence",
+      "measurement metadata dictionary"
+    ],
+    "registration": "SciencePlug.register(adapter); duplicate IDs rejected",
+    "device_provenance": "metadata.device.adapter_id and adapter_version must match the registered adapter",
+    "evidence": "Raw bytes and metadata remain separate from derivatives; preserve actual units and settings",
+    "failure_reporting": [
+      "disconnect",
+      "overload",
+      "dropped samples",
+      "timing loss",
+      "unsupported export"
+    ],
+    "physical_acceptance_required": true
+  },
+  "common_metadata_template": {
+    "mode": "FILE_IMPORT",
+    "run_id": null,
+    "experiment_id": null,
+    "component_id": null,
+    "source_fingerprint": null,
+    "captured_at": null,
+    "device": {
+      "manufacturer": null,
+      "model": null,
+      "asset_id": null
+    },
+    "channels": [
+      {
+        "id": null,
+        "quantity": null,
+        "native_units": null,
+        "engineering_units": null,
+        "scale": null,
+        "offset": null,
+        "uncertainty": null,
+        "conditioning": null,
+        "calibration_reference": null,
+        "calibration_date": null,
+        "calibration_due": null,
+        "sample_rate_hz": null,
+        "bandwidth_low_hz": null,
+        "bandwidth_high_hz": null,
+        "anti_alias_filter": null
+      }
+    ],
+    "timing": {
+      "clock_source": null,
+      "method": null,
+      "measured_alignment_error_seconds": null
+    },
+    "actual_conditions": [],
+    "deviations": []
+  },
+  "equipment_profiles": [
+    {
+      "profile_id": "measurement-microphone",
+      "label": "Measurement microphones",
+      "intended_measurement": "acoustic pressure waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "infrasound-microphone",
+      "label": "Infrasound microphones",
+      "intended_measurement": "low-frequency acoustic pressure waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "ultrasonic-microphone",
+      "label": "Ultrasonic measurement microphones",
+      "intended_measurement": "ultrasonic acoustic pressure waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "hydrophone",
+      "label": "Hydrophones",
+      "intended_measurement": "liquid acoustic pressure waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "particle-velocity",
+      "label": "Acoustic particle-velocity probes",
+      "intended_measurement": "acoustic particle velocity",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "sound-intensity",
+      "label": "Sound-intensity probes and analyzers",
+      "intended_measurement": "directional acoustic energy flow",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "accelerometer",
+      "label": "Accelerometers and contact vibration sensors",
+      "intended_measurement": "mechanical vibration",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "laser-vibrometer",
+      "label": "Laser Doppler vibrometers",
+      "intended_measurement": "surface velocity or displacement",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "acoustic-emission",
+      "label": "Acoustic-emission systems",
+      "intended_measurement": "structural stress-wave events",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "sound-level",
+      "label": "Sound-level meters",
+      "intended_measurement": "sound levels and optional waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "noise-dosimeter",
+      "label": "Personal noise dosimeters",
+      "intended_measurement": "accumulated exposure and time history",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "environmental-monitor",
+      "label": "Environmental monitoring stations",
+      "intended_measurement": "sound level histories and optional waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "fft-analyzer",
+      "label": "FFT and spectrum analyzers",
+      "intended_measurement": "spectra and optional original waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "octave-analyzer",
+      "label": "Octave and fractional-octave analyzers",
+      "intended_measurement": "band levels and optional original waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "time-frequency",
+      "label": "Time-frequency analysis systems",
+      "intended_measurement": "spectral evolution and original waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "oscilloscope",
+      "label": "Oscilloscopes and waveform digitizers",
+      "intended_measurement": "electrical waveform",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "frequency-counter",
+      "label": "Frequency counters",
+      "intended_measurement": "frequency period and timing summaries",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "audio-analyzer",
+      "label": "Audio and electroacoustic analyzers",
+      "intended_measurement": "electroacoustic measurements",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "synchronized-daq",
+      "label": "Synchronized sound/vibration acquisition",
+      "intended_measurement": "multichannel sampled waveforms",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "microphone-array",
+      "label": "Microphone arrays and acoustic cameras",
+      "intended_measurement": "spatial acoustic measurements",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "ear-simulator",
+      "label": "Ear simulators and acoustic couplers",
+      "intended_measurement": "sound delivery under specified acoustic loading",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "room-acoustics",
+      "label": "Room/building acoustic systems",
+      "intended_measurement": "room acoustic measurements",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "impedance-tube",
+      "label": "Impedance tubes",
+      "intended_measurement": "material absorption reflection and impedance",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    },
+    {
+      "profile_id": "calibration-reference",
+      "label": "Acoustic calibrators and reference systems",
+      "intended_measurement": "known reference signal",
+      "state": "TEMPLATE PREPARED / MODEL UNASSIGNED",
+      "driver_installed": false,
+      "hardware_connected": false,
+      "physical_readiness": false,
+      "scientific_validity_established": false,
+      "selected_device": {
+        "manufacturer": null,
+        "model": null,
+        "asset_id": null,
+        "firmware": null
+      },
+      "connection": {
+        "transport": null,
+        "address": null,
+        "acquisition_host": null,
+        "host_os": null,
+        "official_driver_or_api": null,
+        "adapter_id": null
+      },
+      "import_plan": {
+        "native": "Original export can be preserved by existing native-file adapter",
+        "wav": "Only if export is supported integer PCM WAV",
+        "csv": "Only after exact uniform sampled-channel layout and actual sample rate are established",
+        "summary_exports": "Preserve as native; dedicated summary/spectrum/level decoder pending"
+      },
+      "metadata_template": {
+        "mode": "FILE_IMPORT",
+        "run_id": null,
+        "experiment_id": null,
+        "component_id": null,
+        "source_fingerprint": null,
+        "captured_at": null,
+        "device": {
+          "manufacturer": null,
+          "model": null,
+          "asset_id": null
+        },
+        "channels": [
+          {
+            "id": null,
+            "quantity": null,
+            "native_units": null,
+            "engineering_units": null,
+            "scale": null,
+            "offset": null,
+            "uncertainty": null,
+            "conditioning": null,
+            "calibration_reference": null,
+            "calibration_date": null,
+            "calibration_due": null,
+            "sample_rate_hz": null,
+            "bandwidth_low_hz": null,
+            "bandwidth_high_hz": null,
+            "anti_alias_filter": null
+          }
+        ],
+        "timing": {
+          "clock_source": null,
+          "method": null,
+          "measured_alignment_error_seconds": null
+        },
+        "actual_conditions": [],
+        "deviations": []
+      }
+    }
+  ],
+  "activation_checks": [
+    "Identify actual device manufacturer/model/asset and acquisition host OS",
+    "Select official API/driver or documented export path",
+    "Map actual measured quantities, units, scale, offset and conditioning",
+    "Verify full-chain bandwidth, sampling and anti-alias filtering",
+    "Supply calibration records and uncertainty appropriate to the experiment",
+    "Verify clocks, triggers and alignment where required",
+    "Test capture, disconnect, overload, stop, save and reload",
+    "Verify raw evidence preservation and derivative lineage",
+    "Review scientific run provenance and physical acceptance before live readiness"
+  ],
+  "next_step": "Continue software-only preparation. When external equipment work is authorized, select an actual model and implement its adapter. No assumed device, calibration, bandwidth or biological response."
+}
