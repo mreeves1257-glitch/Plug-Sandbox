@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ai-composer-control-panel-shell-v2';
+const CACHE_NAME = 'ai-composer-control-panel-shell-r4-2026-10-11';
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/control-panel-icon.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL)));
