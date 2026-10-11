@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head>
 <!-- Audio/genre repair saved 2026-10-04T09:27:30-05:00. Original controls and direct Portal 3 to AI Composition routing restored from the October 2 architecture. --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="panel-revision" content="R6-2026-10-11-phone-scroll"><title>Control Panel — Audio & Music Playback</title>
+<meta name="panel-revision" content="R7-2026-10-11-finger-scroll"><title>Control Panel — Audio & Music Playback</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#07111d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -61,12 +61,16 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
 .scrollControls{width:44px;flex:0 0 44px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;padding:4px 0}
 .scrollControls button{width:44px;min-height:48px;padding:4px;font-size:20px}.scrollControls span{writing-mode:vertical-rl;font-size:12px;letter-spacing:2px;color:#ccc}
 @media print{html,body{position:static;height:auto}.wrap{height:auto;max-height:none}.scrollFrame{display:block;overflow:visible}#panelScroll{height:auto;overflow:visible}.scrollControls,.appActions{display:none!important}}
+/* ON/OFF alone stays fixed; every other control is in the touch scroll area. */
+.powerBar{display:block}.powerBar #power{width:100%;font-size:16px}
+#panelScroll{height:0;flex:1 1 0;overflow-y:auto;touch-action:pan-y;-webkit-overflow-scrolling:touch;padding-right:0;scrollbar-gutter:auto}
+@media print{#panelScroll{height:auto;overflow:visible}}
 </style><!-- Control Panel boundary: communications, routing, status and playback only. Music composition/rendering belongs exclusively to AI Composition - Sandbox. -->
 </head><body>
 <div class="wrap">
-<div class="row powerBar"><button id="power" class="primary">POWER: OFF</button><button id="estop" class="danger">EMERGENCY STOP</button></div>
-<div class="scrollFrame"><div class="grid" id="panelScroll" tabindex="0" aria-label="Scrollable panel controls">
-<h1>CONTROL PANEL</h1>
+<div class="row powerBar"><button id="power" class="primary">POWER: OFF</button></div>
+<div class="grid" id="panelScroll" tabindex="0" aria-label="Scrollable panel controls">
+<h1>CONTROL PANEL</h1><div class="row"><button id="estop" class="danger">EMERGENCY STOP</button></div>
 <div class="row appActions"><button id="installApp" class="primary" type="button">INSTALL APP</button><button id="downloadPanel" type="button">DOWNLOAD PANEL</button></div><div id="installStatus" class="install-status" role="status"></div>
 <div id="systemStatus" class="status">SYSTEM: OFF</div>
 
@@ -134,7 +138,7 @@ html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden}
 
 <div class="row"><button id="printPanel" type="button">PRINT / SAVE PDF</button></div>
 <section class="card"><h2>LIVE SIGNAL PATH</h2><div id="livePath" class="path">Library → Rack: waiting<br>P1: OFF<br>P2: WAITING<br>P3: OFF</div></section>
-</div><nav class="scrollControls" aria-label="Panel scrolling"><button id="scrollUp" type="button" aria-label="Scroll panel up">▲</button><span>SCROLL</span><button id="scrollDown" type="button" aria-label="Scroll panel down">▼</button></nav></div>
+</div>
 
 <script>
 const libraryData=[
@@ -505,8 +509,6 @@ function fitPhonePanel(){
  if(Number.isFinite(height)&&height>0)document.documentElement.style.setProperty('--panel-height',Math.floor(height)+'px');
 }
 fitPhonePanel();window.addEventListener('resize',fitPhonePanel);window.visualViewport?.addEventListener('resize',fitPhonePanel);
-document.getElementById('scrollUp').addEventListener('click',()=>{const panel=document.getElementById('panelScroll');panel.scrollBy({top:-panel.clientHeight*0.8,behavior:'smooth'});});
-document.getElementById('scrollDown').addEventListener('click',()=>{const panel=document.getElementById('panelScroll');panel.scrollBy({top:panel.clientHeight*0.8,behavior:'smooth'});});
 const originalPanelHTML='<!doctype html>\n'+document.documentElement.outerHTML;
 let installPrompt=null;
 const installButton=document.getElementById('installApp');
@@ -525,7 +527,7 @@ installButton.addEventListener('click',async()=>{
 document.getElementById('downloadPanel').addEventListener('click',async()=>{
  try{
  const content=location.protocol==='file:'?originalPanelHTML:await fetch(location.pathname,{cache:'no-store'}).then(r=>{if(!r.ok)throw Error('Download failed');return r.text()});
- const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Phone-R6.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ const blob=new Blob([content],{type:'text/html'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='Control-Panel-Phone-R7.html';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
  installStatus.textContent='Panel file downloaded. Music creation needs an internet connection.';
  }catch(e){installStatus.textContent='Download failed: '+e.message;}
 });
