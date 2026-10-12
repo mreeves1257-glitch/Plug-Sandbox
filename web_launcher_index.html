@@ -344,7 +344,7 @@ function waitForComposer(signal){
 async function sendCompositionRequest(){
  if(!powered){$('musicStatus').textContent='MUSIC: TURN MASTER POWER ON';return;}
  if(!['MUSIC','BOTH'].includes(route)){$('musicStatus').textContent='MUSIC: SELECT MUSIC OR BOTH IN PORTAL 3 AND APPLY ROUTE';return;}
- if(Number($('musicTuning').value)!==440){$('musicStatus').textContent='MUSIC: HOSTED 432 Hz SUPPORT IS NOT CONFIRMED • SELECT 440 Hz OR USE THE LOCAL REPAIR';return;}
+
  if(musicBusy){$('musicStatus').textContent='MUSIC: WAIT FOR CREATION TO COMPLETE';return;}
  const serial=++musicRequestSerial,request=compositionRequest();
  const controller=new AbortController();musicAbort=controller;let timedOut=false;
@@ -392,6 +392,7 @@ async function sendCompositionRequest(){
    if(serial!==musicRequestSerial)return request;
    if(!response.ok)throw new Error(replyReason(composerReply)+' (HTTP '+response.status+')');
    const detail=composerReply?.ai_composition||composerReply;
+   if(request.tuning_reference_hz===432&&Number(detail.tuning_reference_hz)!==432)throw new Error('Composer did not confirm A = 432 Hz tuning');
    if(!await acceptCompositionOutput(detail,base,controller.signal,serial)){
     $('engineStatus').textContent='AI COMPOSITION: CONNECTED • AUDIO NOT READY';
     $('musicStatus').textContent='MUSIC: '+request.genre+' • '+replyReason(composerReply);
