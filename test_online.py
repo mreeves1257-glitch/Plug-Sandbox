@@ -3,6 +3,9 @@ import hashlib
 import io
 import json
 import math
+import sqlite3
+import tempfile
+from pathlib import Path
 import threading
 import unittest
 from http.server import ThreadingHTTPServer
@@ -21,6 +24,42 @@ def request_data(samples=None):
 
 
 class OnlineTests(unittest.TestCase):
+    def assert_numeric_failure_preserves_record(self, magnitude):
+        original = ("sample_index,x\n" + "".join(
+            f"{i},{magnitude if i % 2 else -magnitude}\n" for i in range(256))).encode()
+        request = dict(filename="extreme.csv", format="csv",
+                       file_base64=base64.b64encode(original).decode(),
+                       csv_sample_rate_hz=8192, fft_size=256, max_frames=1)
+        result = process_record(request)
+        self.assertIsNone(result["report"])
+        self.assertTrue(result["diagnostic_error"])
+        self.assertEqual(result["scientific_review_status"], "HOLD")
+        self.assertFalse(result["server_retains_record"])
+        if magnitude == 1e308:
+            self.assertIn("numeric range", result["diagnostic_error"])
+        else:
+            self.assertIn("Out of range float", result["diagnostic_error"])
+        json.dumps(result, allow_nan=False)
+        with zipfile.ZipFile(io.BytesIO(base64.b64decode(result["record_base64"]))) as archive:
+            self.assertEqual(archive.read("original/extreme.csv"), original)
+            self.assertNotIn("frequency-report.json", archive.namelist())
+            self.assertIsNone(json.loads(archive.read("record.json"))["derivative_id"])
+            manifest = json.loads(archive.read("sha256-manifest.json"))
+            for name, digest in manifest.items():
+                self.assertEqual(hashlib.sha256(archive.read(name)).hexdigest(), digest)
+            with tempfile.TemporaryDirectory() as temp:
+                path = Path(temp) / "evidence.sqlite"
+                path.write_bytes(archive.read("evidence.sqlite"))
+                with sqlite3.connect(path) as db:
+                    self.assertEqual(db.execute("SELECT payload FROM evidence").fetchone()[0], original)
+                    self.assertEqual(db.execute("SELECT COUNT(*) FROM derivatives").fetchone()[0], 0)
+
+    def test_arithmetic_overflow_keeps_original_downloadable(self):
+        self.assert_numeric_failure_preserves_record(1e308)
+
+    def test_nonfinite_derived_output_keeps_original_downloadable(self):
+        self.assert_numeric_failure_preserves_record(1e154)
+
     def test_full_record_preserves_original_and_hashes(self):
         request, original = request_data()
         result = process_record(request)

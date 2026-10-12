@@ -18,7 +18,7 @@ from recording_adapters import CsvFileAdapter, WavFileAdapter, decode_wav
 from science_plug import FileImportAdapter, SciencePlug
 from equipment_readiness import preparation_status
 
-APP_VERSION = "science-online-1.0.0"
+APP_VERSION = "science-online-1.0.1"
 MAX_UPLOAD = 10 * 1024 * 1024
 MAX_REQUEST = 16 * 1024 * 1024
 ROOT = Path(__file__).resolve().parent
@@ -109,8 +109,13 @@ def process_record(request):
             original, record = plug.load(identifier)
             if request.get("analyze", True) and fmt != "native":
                 try:
-                    report = analyze_recording(original, record, fft_size=fft_size, max_frames=max_frames)
-                    derivative_id = plug.save_derivative(identifier, report)
+                    candidate = analyze_recording(original, record, fft_size=fft_size, max_frames=max_frames)
+                    # Publish only after the complete derivative is finite, serializable
+                    # and saved. Failed analysis must still export the original evidence.
+                    derivative_id = plug.save_derivative(identifier, candidate)
+                    report = candidate
+                except ArithmeticError:
+                    diagnostic_error = "Diagnostic arithmetic exceeded the supported numeric range; original evidence is preserved."
                 except (ValueError, wave.Error, EOFError, UnicodeError) as error:
                     diagnostic_error = str(error)
         finally:
