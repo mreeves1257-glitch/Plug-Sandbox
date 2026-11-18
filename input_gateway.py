@@ -39,6 +39,103 @@ def _composer_gateway_ready(http_status, state):
             and state.get("status") == "BRIDGE_READY")
 
 
+
+# No Control Panel path may update Composer files, genre packages, or master state.
+# Enforce this at the shared plug, not only in downloadable browser JavaScript.
+PANEL_FIELDS = frozenset({
+    "interface_version", "request_id", "source", "music_engine",
+    "destination", "entry_path", "command", "execute", "target",
+    "mode", "genre", "portal3_route", "tuning_reference_hz",
+    "requested_at", "controlled_input",
+})
+PANEL_FIXED = {
+    "interface_version": INTERFACE,
+    "source": "Control Panel",
+    "music_engine": "AI_COMPOSITION",
+    "destination": "AI Composition - Sandbox",
+    "entry_path": "/plug",
+    "command": "compose",
+    "execute": "AICompositionEngine.run",
+    "target": "INTERNAL",
+}
+MAX_PANEL_REQUEST_BYTES = 16384
+
+
+def _genre_text(value):
+    # Slash, #, Unicode and ampersands are valid in the 55 official genre names.
+    return (isinstance(value, str) and 0 < len(value) <= 120
+            and value.strip() == value
+            and not any(ord(char) < 32 or ord(char) == 127 for char in value))
+
+
+def _checked_controlled_input(value):
+    # User-controlled compositions may select musical sections, never files/code.
+    import math
+    if not isinstance(value, dict):
+        raise ValueError("CONTROLLED_INPUT_INVALID")
+    allowed = {"saved_profile_id", "region", "source_provenance", "sections"}
+    if set(value) - allowed:
+        raise ValueError("CONTROLLED_INPUT_UNAUTHORIZED_FIELD")
+    checked = {}
+    for name in ("saved_profile_id", "region", "source_provenance"):
+        if name in value:
+            txt = value[name]
+            if not isinstance(txt, str) or not 0 < len(txt) <= 160 or any(ord(c) < 32 for c in txt):
+                raise ValueError("CONTROLLED_INPUT_FIELD_INVALID:" + name)
+            checked[name] = txt
+    if "sections" in value:
+        sections = value["sections"]
+        if not isinstance(sections, list) or not 0 < len(sections) <= 8:
+            raise ValueError("CONTROLLED_SECTIONS_INVALID")
+        result = []
+        for section in sections:
+            if not isinstance(section, dict) or set(section) != {"genre", "duration_seconds"}:
+                raise ValueError("CONTROLLED_SECTION_UNAUTHORIZED_FIELD")
+            if not _genre_text(section["genre"]):
+                raise ValueError("CONTROLLED_SECTION_GENRE_INVALID")
+            duration = section["duration_seconds"]
+            if type(duration) not in (int, float) or not math.isfinite(duration) or not 1 <= duration <= 3600:
+                raise ValueError("CONTROLLED_SECTION_DURATION_INVALID")
+            result.append({"genre": section["genre"], "duration_seconds": duration})
+        checked["sections"] = result
+    return checked
+
+
+def _music_only_request(payload):
+    """Allowlist the complete request and reconstruct it before forwarding."""
+    import re
+    if not isinstance(payload, dict):
+        raise ValueError("INPUT_PAYLOAD_MUST_BE_OBJECT")
+    if set(payload) - PANEL_FIELDS:
+        raise ValueError("CONTROL_PANEL_UNAUTHORIZED_FIELD")
+    for key, expected in PANEL_FIXED.items():
+        if payload.get(key) != expected:
+            raise ValueError("CONTROL_PANEL_BOUNDARY_MISMATCH:" + key)
+    if not _genre_text(payload.get("genre")):
+        raise ValueError("CONTROL_PANEL_GENRE_INVALID")
+    if payload.get("portal3_route") not in ("MUSIC", "BOTH"):
+        raise ValueError("CONTROL_PANEL_ROUTE_NOT_MUSIC")
+    if payload.get("mode") not in ("normal", "quick"):
+        raise ValueError("CONTROL_PANEL_MODE_INVALID")
+    tuning = payload.get("tuning_reference_hz")
+    if type(tuning) not in (int, float) or tuning not in (432, 440):
+        raise ValueError("CONTROL_PANEL_TUNING_INVALID")
+    request_id = payload.get("request_id")
+    if not isinstance(request_id, str) or not re.fullmatch(r"cp-[0-9]+-[0-9]+", request_id):
+        raise ValueError("CONTROL_PANEL_REQUEST_ID_INVALID")
+    requested_at = payload.get("requested_at")
+    if (not isinstance(requested_at, str) or
+            not re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?Z", requested_at)):
+        raise ValueError("CONTROL_PANEL_TIMESTAMP_INVALID")
+    safe = {key: payload[key] for key in PANEL_FIXED}
+    for key in ("request_id", "genre", "portal3_route", "mode", "tuning_reference_hz", "requested_at"):
+        safe[key] = payload[key]
+    if "controlled_input" in payload:
+        safe["controlled_input"] = _checked_controlled_input(payload["controlled_input"])
+    return safe
+
+
+
 class Handler(BaseHTTPRequestHandler):
     def _cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
@@ -168,23 +265,26 @@ class Handler(BaseHTTPRequestHandler):
             return self._json(404, {"status": "NOT_FOUND"})
 
         try:
+            if self.headers.get("Content-Type", "").split(";")[0].strip().lower() != "application/json":
+                return self._json(415, {"status": "INPUT_ERROR", "error": "JSON_CONTENT_TYPE_REQUIRED"})
             length = int(self.headers.get("Content-Length", "0"))
-            body = self.rfile.read(length) if length else b"{}"
-            payload = json.loads(body.decode("utf-8"))
-            if not isinstance(payload, dict):
-                raise ValueError("INPUT_PAYLOAD_MUST_BE_OBJECT")
-            if payload.get("interface_version") not in (None, INTERFACE):
-                raise ValueError("INTERFACE_VERSION_INVALID")
-
-            print(f"PLUG REQUEST path={path} request_id={payload.get('request_id')} genre={payload.get('genre')} command={payload.get('command')}", flush=True)
-            if payload.get("command") == "ping":
+            if not 0 < length <= MAX_PANEL_REQUEST_BYTES:
+                return self._json(413, {"status": "INPUT_ERROR", "error": "CONTROL_PANEL_REQUEST_SIZE_INVALID"})
+            payload = json.loads(self.rfile.read(length).decode("utf-8"))
+            if isinstance(payload, dict) and payload.get("command") == "ping":
+                if set(payload) not in ({"command"}, {"command", "interface_version"}):
+                    raise ValueError("CONTROL_PANEL_PING_FIELDS_BLOCKED")
+                if payload.get("interface_version", INTERFACE) != INTERFACE:
+                    raise ValueError("INTERFACE_VERSION_INVALID")
                 return self.do_GET_health()
-
+            safe_payload = _music_only_request(payload)
+            body = json.dumps(safe_payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+            print(f"PLUG REQUEST path={path} request_id={safe_payload['request_id']} genre={safe_payload['genre']} command=compose", flush=True)
             return self._proxy(
                 "POST",
                 "/compose",
                 body=body,
-                content_type=self.headers.get("Content-Type", "application/json"),
+                content_type="application/json",
             )
         except Exception as exc:
             return self._json(400, {"status": "INPUT_ERROR", "error": str(exc)})

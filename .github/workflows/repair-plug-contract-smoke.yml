@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - repair-ready-contract-and-timeout-2026-10-08
+      - main
   workflow_dispatch:
 
 jobs:
