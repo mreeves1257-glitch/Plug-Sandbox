@@ -331,7 +331,29 @@ function compositionAddress(){
  url.search='';url.hash='';url.pathname=url.pathname.replace(/\/(compose|plug|panel|health)\/?$/,'').replace(/\/$/,'')+'/';
  return url.href;
 }
-function compositionRequest(){return {interface_version:'COMPOSER_INTERFACE_V1',request_id:'cp-'+Date.now()+'-'+(++controlPanelPlugSerial),source:'Control Panel',music_engine:'AI_COMPOSITION',destination:'AI Composition - Sandbox',entry_path:'/plug',command:'compose',execute:'AICompositionEngine.run',target:'INTERNAL',mode:'normal',genre:$('genre').value,portal3_route:route,tuning_reference_hz:Number($('musicTuning').value),requested_at:new Date().toISOString()}}
+// The Control Panel has no Composer administration privileges: request music only.
+// This client check prevents accidental additions; the plug enforces it server-side.
+const PANEL_COMPOSE_FIELDS=Object.freeze([
+ 'interface_version','request_id','source','music_engine','destination',
+ 'entry_path','command','execute','target','mode','genre','portal3_route',
+ 'tuning_reference_hz','requested_at'
+]);
+function checkPanelComposeBoundary(request){
+ const keys=Object.keys(request);
+ if(keys.length!==PANEL_COMPOSE_FIELDS.length||keys.some(k=>!PANEL_COMPOSE_FIELDS.includes(k))
+    ||request.interface_version!=='COMPOSER_INTERFACE_V1'
+    ||request.source!=='Control Panel'||request.music_engine!=='AI_COMPOSITION'
+    ||request.destination!=='AI Composition - Sandbox'||request.entry_path!=='/plug'
+    ||request.command!=='compose'||request.execute!=='AICompositionEngine.run'
+    ||request.target!=='INTERNAL'||request.mode!=='normal'
+    ||!['MUSIC','BOTH'].includes(request.portal3_route)
+    ||![432,440].includes(request.tuning_reference_hz)
+    ||typeof request.genre!=='string'||!request.genre.trim()){
+  throw new Error('CONTROL PANEL BOUNDARY: music requests only; Composer files and configuration are protected');
+ }
+ return Object.freeze(request);
+}
+function compositionRequest(){return checkPanelComposeBoundary({interface_version:'COMPOSER_INTERFACE_V1',request_id:'cp-'+Date.now()+'-'+(++controlPanelPlugSerial),source:'Control Panel',music_engine:'AI_COMPOSITION',destination:'AI Composition - Sandbox',entry_path:'/plug',command:'compose',execute:'AICompositionEngine.run',target:'INTERNAL',mode:'normal',genre:$('genre').value,portal3_route:route,tuning_reference_hz:Number($('musicTuning').value),requested_at:new Date().toISOString()})}
 function replyReason(reply){const detail=reply?.ai_composition||reply;return detail?.reason||detail?.audio_render?.reason||detail?.error||reply?.error||detail?.status||'Audio output is not ready';}
 function waitForComposer(signal){
  return new Promise((resolve,reject)=>{
